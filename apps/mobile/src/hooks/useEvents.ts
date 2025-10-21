@@ -10,6 +10,7 @@ interface EventFilters {
   to?: string;
   lat?: number;
   lon?: number;
+  online?: boolean;
 }
 
 export function useEvents(filters: EventFilters = {}) {
@@ -21,8 +22,9 @@ export function useEvents(filters: EventFilters = {}) {
     if (filters.to) params.set('to', filters.to);
     if (typeof filters.lat === 'number') params.set('lat', filters.lat.toString());
     if (typeof filters.lon === 'number') params.set('lon', filters.lon.toString());
+    if (typeof filters.online === 'boolean') params.set('online', String(filters.online));
     return params;
-  }, [filters.region, filters.query, filters.from, filters.to, filters.lat, filters.lon]);
+  }, [filters.region, filters.query, filters.from, filters.to, filters.lat, filters.lon, filters.online]);
 
   const key = searchParams.toString();
 

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { ZodError } from 'zod';
 import { webhookAuth } from '../middleware/webhookAuth.js';
 import {
   markWebhookFailed,
@@ -7,6 +8,7 @@ import {
   processCampaignUpsert,
   recordWebhookEvent,
 } from '../services/webhookService.js';
+import { WebhookProcessingError } from '../services/webhookError.js';
 
 export const webhookRouter = Router();
 
@@ -32,7 +34,7 @@ async function runWebhook(
     });
     storedEvent = recorded.event;
 
-    if (recorded.alreadyProcessed) {
+    if (!recorded.shouldProcess) {
       return res.status(200).json({ ok: true, processed: false });
     }
 
@@ -47,6 +49,19 @@ async function runWebhook(
         next(markError);
         return;
       }
+    }
+    if (error instanceof WebhookProcessingError) {
+      return res.status(error.status).json(error.body);
+    }
+    if (error instanceof ZodError || (error && typeof error === 'object' && (error as { name?: string }).name === 'ZodError')) {
+      const zodError = error instanceof ZodError ? error : (error as ZodError);
+      return res.status(422).json({
+        error: 'invalid_payload',
+        details: zodError.issues.map((issue) => ({
+          path: issue.path.join('.') || 'root',
+          message: issue.message,
+        })),
+      });
     }
     return next(error);
   }

@@ -26,6 +26,7 @@ async function main() {
       city: 'Berlin',
       state: 'Berlin',
       country: 'DE',
+      region: 'Berlin',
       lat: 52.5075,
       lon: 13.3904,
       registrationUrl: 'https://doo.net/e/123456',

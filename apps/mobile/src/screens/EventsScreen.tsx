@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Location from 'expo-location';
 import { useEvents } from '../hooks/useEvents.js';
 import { EventCard } from '../components/EventCard.js';
 import { colors, spacing, typography } from '../theme/index.js';
@@ -33,6 +34,33 @@ export const EventsScreen: FC = () => {
   const [query, setQuery] = useState('');
   const [onlineOnly, setOnlineOnly] = useState(false);
   const [dateFilter, setDateFilter] = useState<DateFilterKey>('upcoming');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lon: number } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== Location.PermissionStatus.GRANTED) {
+          return;
+        }
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        if (!cancelled) {
+          setCoordinates({
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          });
+        }
+      } catch (error) {
+        // ignore permission/location errors and fall back to region-only filtering
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filterParams = useMemo(() => {
     const now = new Date();
@@ -42,6 +70,8 @@ export const EventsScreen: FC = () => {
       online?: boolean;
       from?: string;
       to?: string;
+      lat?: number;
+      lon?: number;
     } = {};
     if (region.trim()) params.region = region.trim();
     if (query.trim()) params.query = query.trim();
@@ -54,8 +84,12 @@ export const EventsScreen: FC = () => {
       params.from = monthStart.toISOString();
       params.to = monthEnd.toISOString();
     }
+    if (coordinates) {
+      params.lat = coordinates.lat;
+      params.lon = coordinates.lon;
+    }
     return params;
-  }, [region, query, onlineOnly, dateFilter]);
+  }, [region, query, onlineOnly, dateFilter, coordinates]);
 
   const { data, isLoading, refetch, isRefetching } = useEvents(filterParams);
 

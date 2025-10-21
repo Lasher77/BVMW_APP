@@ -27,11 +27,7 @@ export async function listEvents(params: {
     }
   }
   if (region) {
-    where.OR = [
-      { city: { contains: region, mode: 'insensitive' } },
-      { state: { contains: region, mode: 'insensitive' } },
-      { country: { contains: region, mode: 'insensitive' } },
-    ];
+    where.region = { equals: region, mode: 'insensitive' };
   }
   if (query) {
     const q = { contains: query, mode: 'insensitive' } as const;
@@ -49,14 +45,14 @@ export async function listEvents(params: {
   });
 
   return events.map((event) => {
-    let distance: number | null = null;
+    let distanceKm: number | null = null;
     if (
       typeof params.lat === 'number' &&
       typeof params.lon === 'number' &&
       event.lat !== null &&
       event.lon !== null
     ) {
-      distance = haversineDistanceKm(
+      distanceKm = haversineDistanceKm(
         { lat: params.lat, lon: params.lon },
         { lat: event.lat, lon: event.lon },
       );
@@ -67,10 +63,11 @@ export async function listEvents(params: {
       start: event.start,
       end: event.end,
       city: event.city,
+      region: event.region,
       isOnline: event.isOnline,
       headerImageUrl: event.headerImageUrl,
       tags: event.tags,
-      distance,
+      distanceKm,
     };
   });
 }

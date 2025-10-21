@@ -38,7 +38,7 @@ paths:
           in: query
           schema:
             type: string
-          description: Filter by region (city, state, or country substring).
+          description: Filter by the event region value (exact, case-insensitive match).
         - name: query
           in: query
           schema:
@@ -147,12 +147,22 @@ webhooks:
             schema:
               $ref: '#/components/schemas/SalesforceCampaignWebhook'
       responses:
+        '200':
+          description: Duplicate webhook delivery acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AckResponse'
         '202':
           description: Event accepted for processing
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AckResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
   salesforceAttendee:
     post:
       summary: Salesforce attendee upsert
@@ -177,12 +187,24 @@ webhooks:
             schema:
               $ref: '#/components/schemas/SalesforceAttendeeWebhook'
       responses:
+        '200':
+          description: Duplicate webhook delivery acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AckResponse'
         '202':
           description: Registration accepted for processing
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AckResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundCampaign'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
 components:
   schemas:
     HealthResponse:
@@ -208,6 +230,12 @@ components:
         processed:
           type: boolean
           example: true
+    AttendeeStatus:
+      type: string
+      enum: [active, pending_organizer_approval, denied, organizer_accepted_cancellation, actice]
+    AppRegistrationStatus:
+      type: string
+      enum: [registered, pending, rejected, cancelled, attended]
     EventSummary:
       type: object
       properties:
@@ -224,6 +252,9 @@ components:
         city:
           type: string
           nullable: true
+        region:
+          type: string
+          nullable: true
         isOnline:
           type: boolean
         headerImageUrl:
@@ -233,7 +264,7 @@ components:
           type: array
           items:
             type: string
-        distance:
+        distanceKm:
           type: number
           format: float
           nullable: true
@@ -284,8 +315,7 @@ components:
         id:
           type: string
         status:
-          type: string
-          enum: [registered, pending, rejected, cancelled, attended]
+          $ref: '#/components/schemas/AppRegistrationStatus'
         checkInAt:
           type: string
           format: date-time
@@ -358,6 +388,9 @@ components:
                       type: number
                     lon:
                       type: number
+            region:
+              type: string
+              nullable: true
             doo_event_id:
               type: string
               nullable: true
@@ -390,7 +423,7 @@ components:
             id:
               type: string
         status:
-          type: string
+          $ref: '#/components/schemas/AttendeeStatus'
         check_in_at:
           type: string
           format: date-time
@@ -411,3 +444,46 @@ components:
         updated_at:
           type: string
           format: date-time
+  responses:
+    UnauthorizedError:
+      description: Invalid or missing webhook signature
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: string
+                enum: [invalid_signature]
+    NotFoundCampaign:
+      description: Referenced campaign was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: string
+                enum: [campaign_not_found]
+    UnprocessableEntity:
+      description: Payload validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, details]
+            properties:
+              error:
+                type: string
+                example: invalid_payload
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    path:
+                      type: string
+                    message:
+                      type: string
