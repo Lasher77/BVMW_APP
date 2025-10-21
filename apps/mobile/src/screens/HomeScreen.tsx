@@ -3,12 +3,12 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { AppTabParamList } from '../navigation/types.js';
+import type { AppTabParamList } from '../navigation/types';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
-import { useEvents } from '../hooks/useEvents.js';
-import { EventCard } from '../components/EventCard.js';
-import { SectionHeader } from '../components/SectionHeader.js';
-import { colors, spacing, typography } from '../theme/index.js';
+import { useEvents } from '../hooks/useEvents';
+import { EventCard } from '../components/EventCard';
+import { SectionHeader } from '../components/SectionHeader';
+import { colors, spacing, typography } from '../theme';
 
 export const HomeScreen: FC = () => {
   const navigation = useNavigation<BottomTabNavigationProp<AppTabParamList>>();

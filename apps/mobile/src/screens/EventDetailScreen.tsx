@@ -15,11 +15,11 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import { useEvent } from '../hooks/useEvents.js';
-import type { EventsStackParamList } from '../navigation/types.js';
-import { colors, spacing, typography } from '../theme/index.js';
-import { formatDateRange } from '../utils/date.js';
-import { stripHtml } from '../utils/html.js';
+import { useEvent } from '../hooks/useEvents';
+import type { EventsStackParamList } from '../navigation/types';
+import { colors, spacing, typography } from '../theme';
+import { formatDateRange } from '../utils/date';
+import { stripHtml } from '../utils/html';
 
 const placeholderImage = 'https://placehold.co/800x400/E30613/FFFFFF?text=BVMW';
 

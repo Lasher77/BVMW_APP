@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRegistrations } from '../hooks/useEvents.js';
-import { TicketCard } from '../components/TicketCard.js';
-import { colors, spacing, typography } from '../theme/index.js';
+import { useRegistrations } from '../hooks/useEvents';
+import { TicketCard } from '../components/TicketCard';
+import { colors, spacing, typography } from '../theme';
 
 const memberId = process.env.EXPO_PUBLIC_MEMBER_ID ?? '003TEST0001';
 

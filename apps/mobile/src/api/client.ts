@@ -1,4 +1,4 @@
-import type { EventDetail, EventSummary, RegistrationSummary } from './types.js';
+import type { EventDetail, EventSummary, RegistrationSummary } from './types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 

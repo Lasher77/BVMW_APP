@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getEvent, getEvents, getRegistrations } from '../api/client.js';
-import type { EventDetail, EventSummary, RegistrationSummary } from '../api/types.js';
+import { getEvent, getEvents, getRegistrations } from '../api/client';
+import type { EventDetail, EventSummary, RegistrationSummary } from '../api/types';
 
 interface EventFilters {
   region?: string;

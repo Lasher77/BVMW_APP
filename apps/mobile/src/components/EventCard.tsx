@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 import { memo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import type { EventSummary } from '../api/types.js';
-import { colors, radii, spacing, typography } from '../theme/index.js';
-import { formatDateRange } from '../utils/date.js';
+import type { EventSummary } from '../api/types';
+import { colors, radii, spacing, typography } from '../theme';
+import { formatDateRange } from '../utils/date';
 
 type Props = {
   event: EventSummary;
