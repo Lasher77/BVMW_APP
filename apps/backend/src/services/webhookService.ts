@@ -267,7 +267,6 @@ export async function markWebhookFailed(id: string, error: unknown) {
     data: {
       status: 'failed',
       error: message,
-      processedAt: new Date(),
     },
   });
 }

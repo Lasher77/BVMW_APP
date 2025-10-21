@@ -24,7 +24,7 @@ async function runWebhook(
     return res.status(400).json({ ok: false, error: 'missing_idempotency_key' });
   }
 
-  let storedEvent: Awaited<ReturnType<typeof recordWebhookEvent>>['event'] | null = null;
+  let storedEventId: string | null = null;
 
   try {
     const recorded = await recordWebhookEvent({
@@ -32,19 +32,19 @@ async function runWebhook(
       idempotencyKey,
       payload: req.body,
     });
-    storedEvent = recorded.event;
-
     if (!recorded.shouldProcess) {
-      return res.status(200).json({ ok: true, processed: false });
+      return res.status(200).json({ ok: true, duplicate: true, processed: false });
     }
+
+    storedEventId = recorded.event.id;
 
     await processor(req.body);
     await markWebhookProcessed(recorded.event.id);
     return res.status(202).json({ ok: true, processed: true });
   } catch (error) {
-    if (storedEvent) {
+    if (storedEventId) {
       try {
-        await markWebhookFailed(storedEvent.id, error);
+        await markWebhookFailed(storedEventId, error);
       } catch (markError) {
         next(markError);
         return;
@@ -55,12 +55,13 @@ async function runWebhook(
     }
     if (error instanceof ZodError || (error && typeof error === 'object' && (error as { name?: string }).name === 'ZodError')) {
       const zodError = error instanceof ZodError ? error : (error as ZodError);
+      const details = zodError.issues.map((issue) => {
+        const path = issue.path.join('.') || 'root';
+        return `${path}: ${issue.message}`;
+      });
       return res.status(422).json({
         error: 'invalid_payload',
-        details: zodError.issues.map((issue) => ({
-          path: issue.path.join('.') || 'root',
-          message: issue.message,
-        })),
+        details,
       });
     }
     return next(error);

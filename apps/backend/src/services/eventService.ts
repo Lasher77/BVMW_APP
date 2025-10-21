@@ -27,7 +27,7 @@ export async function listEvents(params: {
     }
   }
   if (region) {
-    where.region = { equals: region, mode: 'insensitive' };
+    where.region = { equals: region };
   }
   if (query) {
     const q = { contains: query, mode: 'insensitive' } as const;

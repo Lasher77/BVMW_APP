@@ -17,6 +17,55 @@ This repository contains the MVP implementation for the BVMW Mitglieder-App. It 
 - pnpm 8+
 - PostgreSQL instance for local development
 
+### macOS local testing setup
+
+The following snippet outlines a typical macOS Sonoma (Apple Silicon) setup for evaluating the project locally:
+
+1. Install [Homebrew](https://brew.sh/) if it is not yet available: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`.
+2. Install required tooling:
+   ```bash
+   brew install node@20 pnpm postgresql@15
+   ```
+3. Make the binaries available on your shell (add to `.zshrc` or `.bashrc` as needed):
+   ```bash
+   echo 'export PATH="/opt/homebrew/opt/node@20/bin:/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+4. Start PostgreSQL and create a development database:
+   ```bash
+   brew services start postgresql@15
+   createdb bvmw_app_dev
+   ```
+5. Clone the repository, install dependencies, and run migrations:
+   ```bash
+   git clone https://github.com/<your-org>/BVMW_APP.git
+   cd BVMW_APP
+   pnpm install
+   cd apps/backend
+   cp .env.example .env
+   # update DATABASE_URL to: postgres://$(whoami)@localhost:5432/bvmw_app_dev
+   pnpm prisma migrate dev
+   pnpm prisma generate
+   ```
+6. In a second terminal, prepare the Expo client:
+   ```bash
+   cd apps/mobile
+   cp .env.example .env
+   pnpm install
+   ```
+7. Start the services:
+   ```bash
+   # backend
+   cd apps/backend
+   pnpm dev
+
+   # mobile (separate terminal)
+   cd apps/mobile
+   pnpm start
+   ```
+
+You can now access the backend at `http://localhost:3000` and connect the Expo app via the QR code shown in the terminal.
+
 ## Backend (`apps/backend`)
 
 ### Environment

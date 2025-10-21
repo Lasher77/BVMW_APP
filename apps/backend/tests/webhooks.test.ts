@@ -89,13 +89,47 @@ describe('Salesforce webhooks', () => {
     expect(response.status).toBe(422);
     expect(response.body).toEqual({
       error: 'invalid_payload',
-      details: [
-        {
-          path: 'campaign.venue.geo.lat',
-          message: 'Expected number, received string',
-        },
-      ],
+      details: ['campaign.venue.geo.lat: Expected number, received string'],
     });
     expect(markFailedSpy).toHaveBeenCalledWith('evt-1', zodError);
+  });
+
+  it('acknowledges duplicate webhook deliveries without reprocessing', async () => {
+    const recordSpy = jest
+      .spyOn(webhookService, 'recordWebhookEvent')
+      .mockResolvedValue({ shouldProcess: false, event: { id: 'evt-existing' } as any });
+    const processorSpy = jest
+      .spyOn(webhookService, 'processCampaignUpsert')
+      .mockResolvedValue({} as any);
+    const processedSpy = jest
+      .spyOn(webhookService, 'markWebhookProcessed')
+      .mockResolvedValue();
+    const failedSpy = jest
+      .spyOn(webhookService, 'markWebhookFailed')
+      .mockResolvedValue();
+
+    const payload = { event_type: 'campaign.upsert', version: 1, campaign: {} };
+    const rawPayload = JSON.stringify(payload);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const signature = computeSignature(
+      process.env.WEBHOOK_SHARED_SECRET ?? 'test-secret',
+      timestamp,
+      Buffer.from(rawPayload),
+    );
+
+    const response = await request(app)
+      .post('/webhooks/salesforce/campaign')
+      .set('Content-Type', 'application/json')
+      .set('Idempotency-Key', 'evt-duplicate')
+      .set('X-Timestamp', timestamp)
+      .set('X-Signature', signature)
+      .send(payload);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ ok: true, duplicate: true, processed: false });
+    expect(recordSpy).toHaveBeenCalledTimes(1);
+    expect(processorSpy).not.toHaveBeenCalled();
+    expect(processedSpy).not.toHaveBeenCalled();
+    expect(failedSpy).not.toHaveBeenCalled();
   });
 });
