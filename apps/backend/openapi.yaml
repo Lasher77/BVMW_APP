@@ -230,6 +230,11 @@ components:
         processed:
           type: boolean
           example: true
+          description: Indicates that the webhook payload was accepted for processing.
+        duplicate:
+          type: boolean
+          description: Present when the webhook was skipped due to a repeated idempotency key.
+          example: true
     AttendeeStatus:
       type: string
       enum: [active, pending_organizer_approval, denied, organizer_accepted_cancellation, actice]
@@ -481,9 +486,4 @@ components:
               details:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    path:
-                      type: string
-                    message:
-                      type: string
+                  type: string
