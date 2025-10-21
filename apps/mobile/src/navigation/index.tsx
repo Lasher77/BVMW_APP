@@ -2,13 +2,13 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
-import { colors } from '../theme/index.js';
-import type { AppTabParamList, EventsStackParamList } from './types.js';
-import { HomeScreen } from '../screens/HomeScreen.js';
-import { EventsScreen } from '../screens/EventsScreen.js';
-import { EventDetailScreen } from '../screens/EventDetailScreen.js';
-import { TicketsScreen } from '../screens/TicketsScreen.js';
-import { ProfileScreen } from '../screens/ProfileScreen.js';
+import { colors } from '../theme';
+import type { AppTabParamList, EventsStackParamList } from './types';
+import { HomeScreen } from '../screens/HomeScreen';
+import { EventsScreen } from '../screens/EventsScreen';
+import { EventDetailScreen } from '../screens/EventDetailScreen';
+import { TicketsScreen } from '../screens/TicketsScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
 
 enableScreens(true);
 

@@ -1,6 +1,6 @@
 import type { FC, ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '../theme/index.js';
+import { colors, spacing, typography } from '../theme';
 
 type Props = {
   title: string;

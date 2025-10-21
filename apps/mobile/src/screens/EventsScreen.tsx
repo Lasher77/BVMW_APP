@@ -15,10 +15,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
-import { useEvents } from '../hooks/useEvents.js';
-import { EventCard } from '../components/EventCard.js';
-import { colors, spacing, typography } from '../theme/index.js';
-import type { EventsStackParamList } from '../navigation/types.js';
+import { useEvents } from '../hooks/useEvents';
+import { EventCard } from '../components/EventCard';
+import { colors, spacing, typography } from '../theme';
+import type { EventsStackParamList } from '../navigation/types';
 
 const dateFilters = [
   { key: 'all', label: 'Alle' },

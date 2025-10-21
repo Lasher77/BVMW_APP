@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors, spacing, typography } from '../theme/index.js';
+import { colors, spacing, typography } from '../theme';
 
 const memberId = process.env.EXPO_PUBLIC_MEMBER_ID ?? '003TEST0001';
 const memberType = memberId.startsWith('003') ? 'Kontakt' : 'Lead';

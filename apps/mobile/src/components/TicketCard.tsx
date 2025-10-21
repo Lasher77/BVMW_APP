@@ -2,9 +2,9 @@ import type { FC } from 'react';
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import type { RegistrationSummary } from '../api/types.js';
-import { colors, radii, spacing, typography } from '../theme/index.js';
-import { formatDate } from '../utils/date.js';
+import type { RegistrationSummary } from '../api/types';
+import { colors, radii, spacing, typography } from '../theme';
+import { formatDate } from '../utils/date';
 
 const statusLabels: Record<RegistrationSummary['status'], string> = {
   registered: 'Angemeldet',
