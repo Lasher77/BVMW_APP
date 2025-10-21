@@ -51,7 +51,11 @@ apiRouter.get('/members/:id/registrations', async (req, res, next) => {
         start: registration.event.start,
         end: registration.event.end,
         city: registration.event.city,
+        region: registration.event.region,
+        isOnline: registration.event.isOnline,
         headerImageUrl: registration.event.headerImageUrl,
+        tags: registration.event.tags,
+        distanceKm: null,
       },
     }));
     res.json({ registrations: data });

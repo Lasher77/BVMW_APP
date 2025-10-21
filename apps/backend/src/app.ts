@@ -22,10 +22,11 @@ export function createApp() {
     express.json({
       limit: '1mb',
       verify: (req, _res, buf) => {
-        if (!req.originalUrl.startsWith('/webhooks')) {
+        const request = req as unknown as express.Request & { rawBody?: Buffer };
+        if (!request.originalUrl.startsWith('/webhooks')) {
           return;
         }
-        req.rawBody = Buffer.from(buf);
+        request.rawBody = Buffer.from(buf);
       },
     }),
   );

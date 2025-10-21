@@ -4,10 +4,11 @@ export interface EventSummary {
   start: string;
   end: string;
   city: string | null;
+  region: string | null;
   isOnline: boolean;
   headerImageUrl: string | null;
   tags: string[];
-  distance: number | null;
+  distanceKm: number | null;
 }
 
 export interface EventDetail extends EventSummary {

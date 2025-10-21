@@ -12,7 +12,17 @@ type Props = {
 
 const placeholderImage = 'https://placehold.co/600x300/E30613/FFFFFF?text=BVMW';
 
+const distanceFormatter = new Intl.NumberFormat('de-DE', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 const EventCardComponent: FC<Props> = ({ event, onPress }) => {
+  const formattedDistance =
+    typeof event.distanceKm === 'number'
+      ? `${distanceFormatter.format(event.distanceKm)} km entfernt`
+      : null;
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -32,9 +42,7 @@ const EventCardComponent: FC<Props> = ({ event, onPress }) => {
           <Text style={styles.meta}>
             {event.isOnline ? 'Online' : event.city ?? 'Ort folgt'}
           </Text>
-          {typeof event.distance === 'number' && (
-            <Text style={styles.meta}>{`${event.distance.toFixed(0)} km`}</Text>
-          )}
+          {formattedDistance && <Text style={styles.meta}>{formattedDistance}</Text>}
         </View>
         <View style={styles.tags}>
           {event.tags.slice(0, 3).map((tag) => (

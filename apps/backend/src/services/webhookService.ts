@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { sanitizeHtml } from '../utils/sanitize.js';
 import { mapRegistrationStatus } from './statusMapper.js';
+import { WebhookProcessingError } from './webhookError.js';
 
 const campaignWebhookSchema = z.object({
   event_type: z.literal('campaign.upsert'),
@@ -12,7 +13,7 @@ const campaignWebhookSchema = z.object({
   campaign: z.object({
     id: z.string(),
     name: z.string(),
-    title: z.string(),
+    title: z.string().nullable().optional(),
     subtitle: z.string().nullable().optional(),
     description: z.string().nullable().optional(),
     status: z.enum(['Planned', 'Confirmed', 'Completed', 'Cancelled']),
@@ -42,6 +43,7 @@ const campaignWebhookSchema = z.object({
       })
       .nullable()
       .optional(),
+    region: z.string().nullable().optional(),
     doo_event_id: z.string().nullable().optional(),
     registration_url: z.string().url().nullable().optional(),
     header_image_url: z.string().url().nullable().optional(),
@@ -58,7 +60,18 @@ const attendeeWebhookSchema = z.object({
     id: z.string(),
   }),
   status: z.string(),
-  check_in_at: z.string().nullable().optional(),
+  check_in_at: z
+    .string()
+    .nullable()
+    .optional()
+    .refine(
+      (value) =>
+        value == null ||
+        DateTime.fromISO(value, { setZone: true }).isValid,
+      {
+        message: 'Invalid check_in_at date',
+      },
+    ),
   doo: z
     .object({
       event_id: z.string().nullable().optional(),
@@ -80,21 +93,28 @@ export async function recordWebhookEvent(params: {
   payload: unknown;
 }) {
   const { source, idempotencyKey, payload } = params;
-  const existing = await prisma.webhookEvent.findUnique({
-    where: { idempotencyKey },
-  });
-  if (existing) {
-    return { alreadyProcessed: existing.status === 'processed', event: existing };
+  try {
+    const created = await prisma.webhookEvent.create({
+      data: {
+        source,
+        idempotencyKey,
+        payload: payload as Prisma.InputJsonValue,
+        status: 'accepted',
+      },
+    });
+    return { shouldProcess: true, event: created };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const existing = await prisma.webhookEvent.findUnique({
+        where: { idempotencyKey },
+      });
+      if (!existing) {
+        throw error;
+      }
+      return { shouldProcess: false, event: existing };
+    }
+    throw error;
   }
-  const created = await prisma.webhookEvent.create({
-    data: {
-      source,
-      idempotencyKey,
-      payload: payload as Prisma.InputJsonValue,
-      status: 'accepted',
-    },
-  });
-  return { alreadyProcessed: false, event: created };
 }
 
 export async function processCampaignUpsert(payload: unknown) {
@@ -107,9 +127,10 @@ export async function processCampaignUpsert(payload: unknown) {
   }
   const sanitizedDescription = sanitizeHtml(campaign.description ?? null);
   const geo = campaign.venue?.geo ?? null;
+  const preferredTitle = (campaign.title ?? '').trim() || campaign.name;
   const createData: Prisma.EventUncheckedCreateInput = {
     sfCampaignId: campaign.id,
-    title: campaign.title,
+    title: preferredTitle,
     subtitle: campaign.subtitle ?? null,
     description: sanitizedDescription,
     status: campaign.status,
@@ -123,6 +144,7 @@ export async function processCampaignUpsert(payload: unknown) {
     city: campaign.venue?.city ?? null,
     state: campaign.venue?.state ?? null,
     country: campaign.venue?.country ?? null,
+    region: campaign.region ?? null,
     lat: geo?.lat ?? null,
     lon: geo?.lon ?? null,
     dooEventId: campaign.doo_event_id ?? null,
@@ -134,7 +156,7 @@ export async function processCampaignUpsert(payload: unknown) {
   const event = await prisma.event.upsert({
     where: { sfCampaignId: campaign.id },
     update: {
-      title: createData.title,
+      title: preferredTitle,
       subtitle: createData.subtitle,
       description: createData.description,
       status: createData.status,
@@ -148,6 +170,7 @@ export async function processCampaignUpsert(payload: unknown) {
       city: createData.city,
       state: createData.state,
       country: createData.country,
+      region: createData.region,
       lat: createData.lat,
       lon: createData.lon,
       dooEventId: createData.dooEventId,
@@ -163,12 +186,14 @@ export async function processCampaignUpsert(payload: unknown) {
 
 export async function processAttendeeUpsert(payload: unknown) {
   const parsed = attendeeWebhookSchema.parse(payload);
-  const statusFromPayload = mapRegistrationStatus(parsed.status);
+  const statusFromPayload = mapRegistrationStatus(parsed.status, {
+    checkInAt: parsed.check_in_at ?? null,
+  });
   const event = await prisma.event.findUnique({
     where: { sfCampaignId: parsed.campaign_id },
   });
   if (!event) {
-    throw new Error(`Event with campaign ${parsed.campaign_id} not found`);
+    throw new WebhookProcessingError(404, { error: 'campaign_not_found' });
   }
   const member = await prisma.member.upsert({
     where: { id: parsed.person.id },

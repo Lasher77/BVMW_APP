@@ -6,8 +6,10 @@ module.exports = {
   extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
+    '^isomorphic-dompurify$': '<rootDir>/tests/__mocks__/isomorphic-dompurify.ts',
   },
   setupFiles: ['<rootDir>/tests/setupEnv.ts'],
+  transformIgnorePatterns: ['node_modules/(?!(isomorphic-dompurify|jsdom|parse5)/)'],
   globals: {
     'ts-jest': {
       useESM: true,
