@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "BVMW Mitglieder-App",
+    "slug": "bvmw-mitglieder-app",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "bvmw",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

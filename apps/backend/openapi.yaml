@@ -1,0 +1,413 @@
+openapi: 3.1.0
+info:
+  title: BVMW Mitglieder-App API
+  version: 0.1.0
+  description: >-
+    Backend for the BVMW Mitglieder-App MVP. Provides event listings and webhook endpoints
+    for Salesforce and doo integrations.
+servers:
+  - url: http://localhost:3000
+paths:
+  /healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/events:
+    get:
+      summary: List events
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return events starting at or after this ISO timestamp.
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Return events ending at or before this ISO timestamp.
+        - name: region
+          in: query
+          schema:
+            type: string
+          description: Filter by region (city, state, or country substring).
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Free text search across title, subtitle, description, and city.
+        - name: lat
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Latitude of the requester for distance calculation.
+        - name: lon
+          in: query
+          schema:
+            type: number
+            format: float
+          description: Longitude of the requester for distance calculation.
+        - name: online
+          in: query
+          schema:
+            type: boolean
+          description: Filter for online-only events when true.
+      responses:
+        '200':
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventSummary'
+  /api/events/{id}:
+    get:
+      summary: Get event details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  event:
+                    $ref: '#/components/schemas/EventDetail'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/members/{id}/registrations:
+    get:
+      summary: List registrations for a member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Registrations for the member
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registrations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RegistrationSummary'
+webhooks:
+  salesforceCampaign:
+    post:
+      summary: Salesforce campaign upsert
+      description: Upsert an event from a Salesforce Campaign payload.
+      headers:
+        X-Signature:
+          schema:
+            type: string
+          required: true
+          description: HMAC signature of the payload.
+        X-Timestamp:
+          schema:
+            type: string
+          required: true
+          description: Unix timestamp (seconds) used in signature calculation.
+        Idempotency-Key:
+          schema:
+            type: string
+          required: true
+          description: Unique key to avoid double-processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesforceCampaignWebhook'
+      responses:
+        '202':
+          description: Event accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AckResponse'
+  salesforceAttendee:
+    post:
+      summary: Salesforce attendee upsert
+      description: Upsert attendee status and ticket details for a member.
+      headers:
+        X-Signature:
+          schema:
+            type: string
+          required: true
+        X-Timestamp:
+          schema:
+            type: string
+          required: true
+        Idempotency-Key:
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SalesforceAttendeeWebhook'
+      responses:
+        '202':
+          description: Registration accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AckResponse'
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+    ErrorResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: false
+        error:
+          type: string
+    AckResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        processed:
+          type: boolean
+          example: true
+    EventSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        city:
+          type: string
+          nullable: true
+        isOnline:
+          type: boolean
+        headerImageUrl:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        distance:
+          type: number
+          format: float
+          nullable: true
+    EventDetail:
+      allOf:
+        - $ref: '#/components/schemas/EventSummary'
+        - type: object
+          properties:
+            subtitle:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            status:
+              type: string
+              enum: [Planned, Confirmed, Completed, Cancelled]
+            isPublic:
+              type: boolean
+            venueName:
+              type: string
+              nullable: true
+            street:
+              type: string
+              nullable: true
+            postalCode:
+              type: string
+              nullable: true
+            state:
+              type: string
+              nullable: true
+            country:
+              type: string
+              nullable: true
+            registrationUrl:
+              type: string
+              nullable: true
+            headerImageUrl:
+              type: string
+              nullable: true
+            tags:
+              type: array
+              items:
+                type: string
+    RegistrationSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [registered, pending, rejected, cancelled, attended]
+        checkInAt:
+          type: string
+          format: date-time
+          nullable: true
+        event:
+          $ref: '#/components/schemas/EventSummary'
+    SalesforceCampaignWebhook:
+      type: object
+      properties:
+        event_type:
+          type: string
+          enum: [campaign.upsert]
+        version:
+          type: integer
+        campaign:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            title:
+              type: string
+            subtitle:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            status:
+              type: string
+              enum: [Planned, Confirmed, Completed, Cancelled]
+            public:
+              type: boolean
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            is_online:
+              type: boolean
+            venue:
+              type: object
+              nullable: true
+              properties:
+                name:
+                  type: string
+                  nullable: true
+                street:
+                  type: string
+                  nullable: true
+                postal_code:
+                  type: string
+                  nullable: true
+                city:
+                  type: string
+                  nullable: true
+                state:
+                  type: string
+                  nullable: true
+                country:
+                  type: string
+                  nullable: true
+                geo:
+                  type: object
+                  nullable: true
+                  properties:
+                    lat:
+                      type: number
+                    lon:
+                      type: number
+            doo_event_id:
+              type: string
+              nullable: true
+            registration_url:
+              type: string
+              nullable: true
+            header_image_url:
+              type: string
+              nullable: true
+            tags:
+              type: array
+              items:
+                type: string
+    SalesforceAttendeeWebhook:
+      type: object
+      properties:
+        event_type:
+          type: string
+          enum: [attendee.upsert]
+        version:
+          type: integer
+        campaign_id:
+          type: string
+        person:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [contact, lead]
+            id:
+              type: string
+        status:
+          type: string
+        check_in_at:
+          type: string
+          format: date-time
+          nullable: true
+        doo:
+          type: object
+          nullable: true
+          properties:
+            event_id:
+              type: string
+              nullable: true
+            booking_id:
+              type: string
+              nullable: true
+            attendee_id:
+              type: string
+              nullable: true
+        updated_at:
+          type: string
+          format: date-time
