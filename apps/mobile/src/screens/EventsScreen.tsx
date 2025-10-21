@@ -38,7 +38,7 @@ export const EventsScreen: FC = () => {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== Location.PermissionStatus.GRANTED) {
@@ -53,7 +53,7 @@ export const EventsScreen: FC = () => {
             lon: position.coords.longitude,
           });
         }
-      } catch (error) {
+      } catch {
         // ignore permission/location errors and fall back to region-only filtering
       }
     })();
