@@ -1,0 +1,11 @@
+{
+  "name": "bvmw-app",
+  "private": true,
+  "version": "0.1.0",
+  "description": "BVMW Mitglieder-App monorepo",
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build"
+  }
+}
