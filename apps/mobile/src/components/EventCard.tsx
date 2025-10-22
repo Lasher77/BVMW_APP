@@ -4,6 +4,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { EventSummary } from '../api/types';
 import { colors, radii, spacing, typography } from '../theme';
 import { formatDateRange } from '../utils/date';
+import { createNumberFormatter } from '../utils/intl';
 
 type Props = {
   event: EventSummary;
@@ -12,7 +13,7 @@ type Props = {
 
 const placeholderImage = 'https://placehold.co/600x300/E30613/FFFFFF?text=BVMW';
 
-const distanceFormatter = new Intl.NumberFormat('de-DE', {
+const distanceFormatter = createNumberFormatter({
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
