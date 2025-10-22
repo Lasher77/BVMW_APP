@@ -10,8 +10,15 @@ async function request<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function getEvents(params: URLSearchParams = new URLSearchParams()) {
-  const search = params.toString();
+function buildQueryString(params: Record<string, string | number | boolean | undefined>) {
+  return Object.entries(params)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+    .join('&');
+}
+
+export function getEvents(params: Record<string, string | number | boolean | undefined> = {}) {
+  const search = buildQueryString(params);
   return request<{ events: EventSummary[] }>(`/api/events${search ? `?${search}` : ''}`);
 }
 
