@@ -14,23 +14,23 @@ interface EventFilters {
 }
 
 export function useEvents(filters: EventFilters = {}) {
-  const searchParams = useMemo(() => {
-    const params = new URLSearchParams();
-    if (filters.region) params.set('region', filters.region);
-    if (filters.query) params.set('query', filters.query);
-    if (filters.from) params.set('from', filters.from);
-    if (filters.to) params.set('to', filters.to);
-    if (typeof filters.lat === 'number') params.set('lat', filters.lat.toString());
-    if (typeof filters.lon === 'number') params.set('lon', filters.lon.toString());
-    if (typeof filters.online === 'boolean') params.set('online', String(filters.online));
+  const queryParams = useMemo(() => {
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (filters.region) params.region = filters.region;
+    if (filters.query) params.query = filters.query;
+    if (filters.from) params.from = filters.from;
+    if (filters.to) params.to = filters.to;
+    if (typeof filters.lat === 'number') params.lat = filters.lat;
+    if (typeof filters.lon === 'number') params.lon = filters.lon;
+    if (typeof filters.online === 'boolean') params.online = filters.online;
     return params;
   }, [filters.region, filters.query, filters.from, filters.to, filters.lat, filters.lon, filters.online]);
 
-  const key = searchParams.toString();
+  const key = JSON.stringify(queryParams);
 
   return useQuery<{ events: EventSummary[] }, Error>({
     queryKey: ['events', key],
-    queryFn: () => getEvents(searchParams),
+    queryFn: () => getEvents(queryParams),
     staleTime: 1000 * 60 * 5,
   });
 }
