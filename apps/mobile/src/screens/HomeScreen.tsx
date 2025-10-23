@@ -9,6 +9,10 @@ import { useEvents } from '../hooks/useEvents';
 import { EventCard } from '../components/EventCard';
 import { SectionHeader } from '../components/SectionHeader';
 import { colors, spacing, typography } from '../theme';
+import { FEATURE_ZUKUNFTSTAG_ENABLED } from '../config/zukunftstag';
+import { ZukunftstagHero } from '../components/ZukunftstagHero';
+import { ZukunftstagCard } from '../components/ZukunftstagCard';
+import { strings } from '../i18n/strings';
 
 export const HomeScreen: FC = () => {
   const navigation = useNavigation<BottomTabNavigationProp<AppTabParamList>>();
@@ -19,8 +23,9 @@ export const HomeScreen: FC = () => {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.greeting}>Willkommen!</Text>
-        <SectionHeader title="Nächstes Event in deiner Nähe" />
+        {FEATURE_ZUKUNFTSTAG_ENABLED && <ZukunftstagHero />}
+        <Text style={styles.greeting}>{strings.home.greeting}</Text>
+        <SectionHeader title={strings.home.nextEventSectionTitle} />
         {nextEvent ? (
           <EventCard
             event={nextEvent}
@@ -32,10 +37,17 @@ export const HomeScreen: FC = () => {
             }
           />
         ) : (
-          <Text style={styles.empty}>Keine kommenden Events gefunden.</Text>
+          <Text style={styles.empty}>{strings.home.noUpcomingEvents}</Text>
         )}
 
-        <SectionHeader title="Schnellzugriff" />
+        {FEATURE_ZUKUNFTSTAG_ENABLED && (
+          <>
+            <SectionHeader title={strings.zukunftstag.cardSectionTitle} />
+            <ZukunftstagCard />
+          </>
+        )}
+
+        <SectionHeader title={strings.home.quickLinksSectionTitle} />
         <View style={styles.quickLinks}>
           <TouchableOpacity
             style={styles.quickLink}
