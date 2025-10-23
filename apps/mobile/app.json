@@ -1,5 +1,6 @@
 {
   "expo": {
+    "entryPoint": "./App.tsx",
     "name": "BVMW Mitglieder-App",
     "slug": "bvmw-mitglieder-app",
     "version": "0.1.0",
