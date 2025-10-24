@@ -1,12 +1,23 @@
 # Backend Webhook Examples
 
-The Salesforce webhooks expect a Unix timestamp and HMAC signature that matches the value of `WEBHOOK_SHARED_SECRET`. The snippets below show how to craft signed requests with `curl` for local testing.
+Incoming webhooks authenticate with a Bearer token by default. Legacy HMAC signatures remain supported when `WEBHOOK_AUTH_MODE=hmac` is set.
 
-## Campaign Upsert
+## Configuration
+
+| Variable | Description |
+| --- | --- |
+| `WEBHOOK_AUTH_MODE` | `bearer` (default) or `hmac`. Controls which authentication strategy is active. |
+| `WEBHOOK_BEARER_TOKENS` | Comma-separated list of allowed tokens. Optional labels can be prefixed via `label:token` (e.g. `sf:token-a,doo:token-b`). |
+| `WEBHOOK_SHARED_SECRET` | Legacy HMAC secret. Only evaluated when `WEBHOOK_AUTH_MODE=hmac`. |
+
+Store tokens in your secrets manager and rotate them regularly. Configure separate tokens per source (Salesforce, Doo, …) to keep revocation scoped.
+
+## Bearer Auth Examples
+
+### Campaign Upsert
 
 ```bash
-SECRET="${WEBHOOK_SHARED_SECRET:-replace-me}"
-TIMESTAMP=$(date +%s)
+TOKEN="${WEBHOOK_BEARER_TOKEN_SF:-replace-me}"
 PAYLOAD='{
   "event_type": "campaign.upsert",
   "version": 1,
@@ -31,6 +42,52 @@ PAYLOAD='{
     "tags": ["Netzwerk", "Politik"]
   }
 }'
+
+curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: demo-campaign-001" \
+  -d "$PAYLOAD"
+```
+
+### Attendee Upsert
+
+```bash
+TOKEN="${WEBHOOK_BEARER_TOKEN_SF:-replace-me}"
+PAYLOAD='{
+  "event_type": "attendee.upsert",
+  "version": 1,
+  "campaign_id": "701TEST0001",
+  "person": { "type": "contact", "id": "003TEST0001" },
+  "status": "active",
+  "doo": { "event_id": "D-123", "booking_id": "B-456" },
+  "updated_at": "2024-08-01T09:30:00+02:00"
+}'
+
+curl -X POST http://localhost:3000/webhooks/salesforce/attendee \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: demo-attendee-001" \
+  -d "$PAYLOAD"
+```
+
+Duplicate requests with the same `Idempotency-Key` will return `200 OK` without reprocessing.
+
+## Legacy HMAC Mode
+
+Set `WEBHOOK_AUTH_MODE=hmac` and use the `WEBHOOK_SHARED_SECRET` value to compute signatures. Timestamp and signature headers become mandatory again in this mode.
+
+```bash
+SECRET="${WEBHOOK_SHARED_SECRET:-replace-me}"
+TIMESTAMP=$(date +%s)
+PAYLOAD='{
+  "event_type": "campaign.upsert",
+  "version": 1,
+  "campaign": {
+    "id": "701TEST0001",
+    "name": "Sommerempfang Berlin"
+  }
+}'
 SIGNATURE=$(printf "%s.%s" "$TIMESTAMP" "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
 
 curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
@@ -41,28 +98,8 @@ curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
   -d "$PAYLOAD"
 ```
 
-## Attendee Upsert
+## Additional Recommendations
 
-```bash
-SECRET="${WEBHOOK_SHARED_SECRET:-replace-me}"
-TIMESTAMP=$(date +%s)
-PAYLOAD='{
-  "event_type": "attendee.upsert",
-  "version": 1,
-  "campaign_id": "701TEST0001",
-  "person": { "type": "contact", "id": "003TEST0001" },
-  "status": "active",
-  "doo": { "event_id": "D-123", "booking_id": "B-456" },
-  "updated_at": "2024-08-01T09:30:00+02:00"
-}'
-SIGNATURE=$(printf "%s.%s" "$TIMESTAMP" "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
-
-curl -X POST http://localhost:3000/webhooks/salesforce/attendee \
-  -H "Content-Type: application/json" \
-  -H "X-Timestamp: $TIMESTAMP" \
-  -H "X-Signature: $SIGNATURE" \
-  -H "Idempotency-Key: demo-attendee-001" \
-  -d "$PAYLOAD"
-```
-
-Adjust IDs and timestamps as needed. Duplicate requests with the same `Idempotency-Key` will return `200 OK` without reprocessing.
+- Accept new and old tokens in parallel during rotations and then retire the old entries.
+- Keep HTTPS enforced and retain the existing rate-limit on `/webhooks`.
+- Consider adding IP allowlists for Salesforce and Doo sources where feasible.
