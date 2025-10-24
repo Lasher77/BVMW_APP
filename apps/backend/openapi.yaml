@@ -123,18 +123,30 @@ webhooks:
   salesforceCampaign:
     post:
       summary: Salesforce campaign upsert
-      description: Upsert an event from a Salesforce Campaign payload.
+      description: >-
+        Upsert an event from a Salesforce Campaign payload. Requests are authenticated
+        via the `Authorization: Bearer` header. Legacy HMAC headers (`X-Timestamp`,
+        `X-Signature`) are only required when `WEBHOOK_AUTH_MODE=hmac` is enabled.
+      security:
+        - BearerAuth: []
       headers:
+        Authorization:
+          schema:
+            type: string
+          required: false
+          description: Bearer token matching the configured whitelist.
         X-Signature:
           schema:
             type: string
-          required: true
-          description: HMAC signature of the payload.
+          required: false
+          deprecated: true
+          description: Legacy HMAC signature. Only evaluated in HMAC mode.
         X-Timestamp:
           schema:
             type: string
-          required: true
-          description: Unix timestamp (seconds) used in signature calculation.
+          required: false
+          deprecated: true
+          description: Legacy Unix timestamp used for HMAC validation.
         Idempotency-Key:
           schema:
             type: string
@@ -166,16 +178,30 @@ webhooks:
   salesforceAttendee:
     post:
       summary: Salesforce attendee upsert
-      description: Upsert attendee status and ticket details for a member.
+      description: >-
+        Upsert attendee status and ticket details for a member. Requests are authenticated
+        via Bearer tokens. Legacy HMAC headers remain available when `WEBHOOK_AUTH_MODE=hmac`
+        is configured.
+      security:
+        - BearerAuth: []
       headers:
+        Authorization:
+          schema:
+            type: string
+          required: false
+          description: Bearer token matching the configured whitelist.
         X-Signature:
           schema:
             type: string
-          required: true
+          required: false
+          deprecated: true
+          description: Legacy HMAC signature header.
         X-Timestamp:
           schema:
             type: string
-          required: true
+          required: false
+          deprecated: true
+          description: Legacy Unix timestamp used for HMAC validation.
         Idempotency-Key:
           schema:
             type: string
@@ -206,6 +232,11 @@ webhooks:
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token authentication for incoming webhooks.
   schemas:
     HealthResponse:
       type: object
@@ -451,7 +482,7 @@ components:
           format: date-time
   responses:
     UnauthorizedError:
-      description: Invalid or missing webhook signature
+      description: Missing or invalid authentication credentials
       content:
         application/json:
           schema:
@@ -460,7 +491,14 @@ components:
             properties:
               error:
                 type: string
-                enum: [invalid_signature]
+                description: Reason for the authentication failure.
+                enum:
+                  - missing_authorization_header
+                  - invalid_authorization_header
+                  - invalid_authorization_scheme
+                  - missing_token
+                  - invalid_token
+                  - invalid_signature
     NotFoundCampaign:
       description: Referenced campaign was not found
       content:
