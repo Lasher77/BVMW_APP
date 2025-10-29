@@ -12,6 +12,14 @@ Incoming webhooks authenticate with a Bearer token by default. Legacy HMAC signa
 
 Store tokens in your secrets manager and rotate them regularly. Configure separate tokens per source (Salesforce, Doo, …) to keep revocation scoped.
 
+Copy `.env.example` to `.env` and adjust the values for your environment:
+
+```bash
+cp .env.example .env
+```
+
+Set `WEBHOOK_AUTH_MODE=bearer` and populate `WEBHOOK_BEARER_TOKENS` with at least one token (optionally prefixed by a label such as `sf:`). The legacy `WEBHOOK_SHARED_SECRET` may remain unset unless HMAC mode is required.
+
 ## Bearer Auth Examples
 
 ### Campaign Upsert
