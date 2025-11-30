@@ -63,6 +63,7 @@ model Event {
   headerImageUrl  String?              @map("header_image_url")
   tags            String[]             @db.Text
   registrations   Registration[]
+  chatMessages    ChatMessage[]
   createdAt       DateTime             @default(now()) @map("created_at")
   updatedAt       DateTime             @updatedAt @map("updated_at")
 }
