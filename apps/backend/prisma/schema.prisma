@@ -74,6 +74,8 @@ model Member {
   emailHash   String?         @map("email_hash")
   company     String?         @db.Text
   registrations Registration[]
+  sentMessages   ChatMessage[] @relation("SenderMessages")
+  receivedMessages ChatMessage[] @relation("RecipientMessages")
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 }
@@ -94,6 +96,20 @@ model Registration {
   updatedAt    DateTime           @updatedAt @map("updated_at")
 
   @@unique([eventId, memberId])
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid())
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     String   @map("event_id")
+  sender      Member   @relation("SenderMessages", fields: [senderId], references: [id])
+  senderId    String   @map("sender_id")
+  recipient   Member   @relation("RecipientMessages", fields: [recipientId], references: [id])
+  recipientId String   @map("recipient_id")
+  content     String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([eventId, createdAt])
 }
 
 model WebhookEvent {

@@ -4,11 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRegistrations } from '../hooks/useEvents';
 import { TicketCard } from '../components/TicketCard';
 import { colors, spacing, typography } from '../theme';
-
-const memberId = process.env.EXPO_PUBLIC_MEMBER_ID ?? '003TEST0001';
+import { currentMemberId } from '../config/member';
 
 export const TicketsScreen: FC = () => {
-  const { data, isLoading } = useRegistrations(memberId);
+  const { data, isLoading } = useRegistrations(currentMemberId);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

@@ -98,6 +98,132 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/events/{id}/attendees:
+    get:
+      summary: List attendees for an event
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Registered attendees for the event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attendees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttendeeSummary'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/events/{id}/messages:
+    get:
+      summary: List private chat messages between two attendees
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: memberA
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: memberB
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Messages between the two members
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: Missing member identifiers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: One of the members is not registered for the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Send a private message to another attendee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [senderId, recipientId, content]
+              properties:
+                senderId:
+                  type: string
+                recipientId:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Message stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    $ref: '#/components/schemas/ChatMessage'
+        '400':
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Sender or recipient is not registered for the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/members/{id}/registrations:
     get:
       summary: List registrations for a member
@@ -338,13 +464,41 @@ components:
             registrationUrl:
               type: string
               nullable: true
-            headerImageUrl:
-              type: string
-              nullable: true
-            tags:
-              type: array
-              items:
-                type: string
+    MemberProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        company:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [contact, lead]
+    AttendeeSummary:
+      type: object
+      properties:
+        member:
+          $ref: '#/components/schemas/MemberProfile'
+        status:
+          $ref: '#/components/schemas/AppRegistrationStatus'
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        senderId:
+          type: string
+        recipientId:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     RegistrationSummary:
       type: object
       properties:

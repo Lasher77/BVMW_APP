@@ -50,6 +50,21 @@ async function main() {
     },
   });
 
+  const partner = await prisma.member.upsert({
+    where: { id: '003TEST0002' },
+    update: {
+      type: 'lead',
+      name: 'Erika Beispiel',
+      company: 'Beispiel AG',
+    },
+    create: {
+      id: '003TEST0002',
+      type: 'lead',
+      name: 'Erika Beispiel',
+      company: 'Beispiel AG',
+    },
+  });
+
   await prisma.registration.upsert({
     where: {
       eventId_memberId: {
@@ -68,6 +83,40 @@ async function main() {
       dooAttendeeId: 'A-0001',
       dooBookingId: 'B-0001',
     },
+  });
+
+  await prisma.registration.upsert({
+    where: {
+      eventId_memberId: {
+        eventId: event.id,
+        memberId: partner.id,
+      },
+    },
+    update: {
+      status: 'registered',
+    },
+    create: {
+      eventId: event.id,
+      memberId: partner.id,
+      status: 'registered',
+    },
+  });
+
+  await prisma.chatMessage.createMany({
+    data: [
+      {
+        eventId: event.id,
+        senderId: member.id,
+        recipientId: partner.id,
+        content: 'Hallo Erika, bist du beim Netzwerktreffen dabei?',
+      },
+      {
+        eventId: event.id,
+        senderId: partner.id,
+        recipientId: member.id,
+        content: 'Hallo Max, ja ich bin dabei. Lass uns nach dem Vortrag austauschen!',
+      },
+    ],
   });
 
   console.log('Seed data created.');
