@@ -2,9 +2,9 @@ import type { FC } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing, typography } from '../theme';
+import { currentMemberId } from '../config/member';
 
-const memberId = process.env.EXPO_PUBLIC_MEMBER_ID ?? '003TEST0001';
-const memberType = memberId.startsWith('003') ? 'Kontakt' : 'Lead';
+const memberType = currentMemberId.startsWith('003') ? 'Kontakt' : 'Lead';
 
 export const ProfileScreen: FC = () => {
   return (
@@ -15,7 +15,7 @@ export const ProfileScreen: FC = () => {
           <Text style={styles.label}>Mitgliedstyp</Text>
           <Text style={styles.value}>{memberType}</Text>
           <Text style={styles.label}>Salesforce ID</Text>
-          <Text style={styles.value}>{memberId}</Text>
+          <Text style={styles.value}>{currentMemberId}</Text>
           <Text style={styles.helper}>
             Änderungen an deinem Profil sind bald möglich. Bitte kontaktiere deine Geschäftsstelle
             für Aktualisierungen.

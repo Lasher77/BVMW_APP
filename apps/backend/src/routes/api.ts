@@ -1,5 +1,11 @@
 import { Router } from 'express';
 import { listEvents, getEvent, getMemberRegistrations } from '../services/eventService.js';
+import {
+  ChatError,
+  listEventAttendees,
+  listEventMessages,
+  sendEventMessage,
+} from '../services/chatService.js';
 
 export const apiRouter = Router();
 
@@ -60,6 +66,61 @@ apiRouter.get('/members/:id/registrations', async (req, res, next) => {
     }));
     res.json({ registrations: data });
   } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.get('/events/:id/attendees', async (req, res, next) => {
+  try {
+    const attendees = await listEventAttendees(req.params.id);
+    res.json({ attendees });
+  } catch (error) {
+    if (error instanceof ChatError) {
+      return res.status(error.status).json({ ok: false, error: error.code });
+    }
+    next(error);
+  }
+});
+
+apiRouter.get('/events/:id/messages', async (req, res, next) => {
+  const { memberA, memberB } = req.query;
+  if (typeof memberA !== 'string' || typeof memberB !== 'string') {
+    return res.status(400).json({ ok: false, error: 'missing_member' });
+  }
+
+  try {
+    const messages = await listEventMessages(req.params.id, memberA, memberB);
+    res.json({ messages });
+  } catch (error) {
+    if (error instanceof ChatError) {
+      return res.status(error.status).json({ ok: false, error: error.code });
+    }
+    next(error);
+  }
+});
+
+apiRouter.post('/events/:id/messages', async (req, res, next) => {
+  const { senderId, recipientId, content } = req.body ?? {};
+  if (
+    typeof senderId !== 'string' ||
+    typeof recipientId !== 'string' ||
+    typeof content !== 'string'
+  ) {
+    return res.status(400).json({ ok: false, error: 'invalid_payload' });
+  }
+
+  try {
+    const message = await sendEventMessage({
+      eventId: req.params.id,
+      senderId,
+      recipientId,
+      content,
+    });
+    res.status(201).json({ message });
+  } catch (error) {
+    if (error instanceof ChatError) {
+      return res.status(error.status).json({ ok: false, error: error.code });
+    }
     next(error);
   }
 });
