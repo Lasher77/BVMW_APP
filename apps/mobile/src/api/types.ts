@@ -30,3 +30,23 @@ export interface RegistrationSummary {
   checkInAt: string | null;
   event: EventSummary;
 }
+
+export interface MemberProfile {
+  id: string;
+  name: string | null;
+  company: string | null;
+  type: 'contact' | 'lead';
+}
+
+export interface AttendeeSummary {
+  member: MemberProfile;
+  status: RegistrationSummary['status'];
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  createdAt: string;
+}

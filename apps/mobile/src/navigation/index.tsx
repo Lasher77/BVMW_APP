@@ -7,6 +7,7 @@ import type { AppTabParamList, EventsStackParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { EventsScreen } from '../screens/EventsScreen';
 import { EventDetailScreen } from '../screens/EventDetailScreen';
+import { EventChatScreen } from '../screens/EventChatScreen';
 import { TicketsScreen } from '../screens/TicketsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
@@ -39,6 +40,11 @@ function EventsStackNavigator() {
         name="EventDetail"
         component={EventDetailScreen}
         options={{ title: 'Event' }}
+      />
+      <EventsStack.Screen
+        name="EventChat"
+        component={EventChatScreen}
+        options={{ title: 'Chat' }}
       />
     </EventsStack.Navigator>
   );

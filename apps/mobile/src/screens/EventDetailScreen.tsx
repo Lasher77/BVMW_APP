@@ -16,10 +16,12 @@ import * as WebBrowser from 'expo-web-browser';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useEvent } from '../hooks/useEvents';
+import { useEventAttendees } from '../hooks/useChat';
 import type { EventsStackParamList } from '../navigation/types';
 import { colors, spacing, typography } from '../theme';
 import { formatDateRange } from '../utils/date';
 import { stripHtml } from '../utils/html';
+import { currentMemberId } from '../config/member';
 
 const placeholderImage = 'https://placehold.co/800x400/E30613/FFFFFF?text=BVMW';
 
@@ -27,6 +29,9 @@ export const EventDetailScreen: FC = () => {
   const route = useRoute<RouteProp<EventsStackParamList, 'EventDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<EventsStackParamList>>();
   const { data, isLoading } = useEvent(route.params.eventId);
+  const { data: attendeesData, isLoading: attendeesLoading } = useEventAttendees(
+    route.params.eventId,
+  );
 
   useEffect(() => {
     if (data?.event?.title) {
@@ -86,6 +91,36 @@ export const EventDetailScreen: FC = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Beschreibung</Text>
           <Text style={styles.body}>{stripHtml(event.description)}</Text>
+        </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Teilnehmende</Text>
+          {attendeesLoading && <ActivityIndicator color={colors.primary} />}
+          {!attendeesLoading && (attendeesData?.attendees?.length ?? 0) === 0 && (
+            <Text style={styles.meta}>Noch keine Anmeldungen sichtbar.</Text>
+          )}
+          {attendeesData?.attendees?.map((attendee) => (
+            <View key={attendee.member.id} style={styles.attendeeRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.attendeeName}>{attendee.member.name ?? 'Teilnehmer'}</Text>
+                <Text style={styles.attendeeCompany}>{attendee.member.company ?? 'Ohne Firma'}</Text>
+              </View>
+              {attendee.member.id !== currentMemberId && (
+                <TouchableOpacity
+                  style={styles.chatButton}
+                  onPress={() =>
+                    navigation.navigate('EventChat', {
+                      eventId: event.id,
+                      partnerId: attendee.member.id,
+                      partnerName: attendee.member.name,
+                    })
+                  }
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.chatButtonLabel}>Chat starten</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
         </View>
         {!event.isOnline && (
           <View style={styles.section}>
@@ -165,6 +200,31 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     fontSize: typography.caption,
     color: colors.primary,
+  },
+  attendeeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  attendeeName: {
+    fontSize: typography.body,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  attendeeCompany: {
+    fontSize: typography.caption,
+    color: colors.muted,
+  },
+  chatButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
+  },
+  chatButtonLabel: {
+    color: colors.background,
+    fontWeight: '600',
+    fontSize: typography.caption,
   },
   cta: {
     marginHorizontal: spacing.lg,
