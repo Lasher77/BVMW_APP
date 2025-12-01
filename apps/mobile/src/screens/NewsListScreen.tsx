@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { StyleSheet, Text, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,11 +18,20 @@ type NavigationProp = CompositeNavigationProp<
 
 export const NewsListScreen: FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { data, isLoading, error } = useNews();
+  const { data, isLoading, error, isRefetching, refetch } = useNews();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <Text style={styles.title}>{strings.news.listTitle}</Text>
         {isLoading && <Text style={styles.status}>Lade…</Text>}
         {error && <Text style={styles.status}>Konnte News nicht laden.</Text>}

@@ -1,6 +1,6 @@
 import type { FC } from 'react';
-import { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { useCallback, useMemo } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppTabParamList, HomeStackParamList } from '../navigation/types';
@@ -25,15 +25,25 @@ type HomeNavigationProp = CompositeNavigationProp<
 
 export const HomeScreen: FC = () => {
   const navigation = useNavigation<HomeNavigationProp>();
-  const { data } = useEvents();
-  const { data: newsData } = useNews(3);
+  const { data, isRefetching: isEventsRefetching, refetch: refetchEvents } = useEvents();
+  const { data: newsData, isRefetching: isNewsRefetching, refetch: refetchNews } = useNews(3);
 
   const nextEvent = useMemo(() => data?.events?.[0], [data?.events]);
   const latestNews = newsData?.news ?? [];
+  const refreshing = isEventsRefetching || isNewsRefetching;
+
+  const handleRefresh = useCallback(() => {
+    void Promise.all([refetchEvents(), refetchNews()]);
+  }, [refetchEvents, refetchNews]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} />
+        }
+      >
         {FEATURE_ZUKUNFTSTAG_ENABLED && <ZukunftstagHero />}
         <Text style={styles.greeting}>{strings.home.greeting}</Text>
         <SectionHeader title={strings.home.nextEventSectionTitle} />
