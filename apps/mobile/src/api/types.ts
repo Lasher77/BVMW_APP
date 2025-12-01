@@ -50,3 +50,17 @@ export interface ChatMessage {
   content: string;
   createdAt: string;
 }
+
+export interface NewsSummary {
+  id: string;
+  headline: string;
+  subline: string | null;
+  imageUrl: string | null;
+  publishedAt: string;
+}
+
+export interface NewsArticle extends NewsSummary {
+  content: string;
+  author: string;
+  downloadUrl: string | null;
+}

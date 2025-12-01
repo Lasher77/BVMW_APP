@@ -25,6 +25,15 @@ type Translations = {
     nextEventSectionTitle: string;
     quickLinksSectionTitle: string;
     noUpcomingEvents: string;
+    newsSectionTitle: string;
+    newsSeeAll: string;
+  };
+  news: {
+    listTitle: string;
+    empty: string;
+    detailTitle: string;
+    publishedBy: (author: string) => string;
+    downloadLabel: string;
   };
 };
 
@@ -50,6 +59,15 @@ const translations: Record<AppLocale, Translations> = {
       nextEventSectionTitle: 'Nächstes Event in deiner Nähe',
       quickLinksSectionTitle: 'Schnellzugriff',
       noUpcomingEvents: 'Keine kommenden Events gefunden.',
+      newsSectionTitle: 'Neuigkeiten',
+      newsSeeAll: 'Alle News anzeigen',
+    },
+    news: {
+      listTitle: 'Alle News',
+      empty: 'Noch keine News verfügbar.',
+      detailTitle: 'News',
+      publishedBy: (author) => `von ${author}`,
+      downloadLabel: 'PDF herunterladen',
     },
   },
 };
