@@ -26,7 +26,7 @@ export const newsAdminPage = `<!doctype html>
   <body>
     <h1>News anlegen</h1>
     <div class="grid">
-      <form id="news-form">
+      <form id="news-form" method="post" action="/api/news">
         <div>
           <label for="headline">Headline*</label>
           <input id="headline" name="headline" required />
