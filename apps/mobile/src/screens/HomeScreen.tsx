@@ -61,6 +61,28 @@ export const HomeScreen: FC = () => {
           <Text style={styles.empty}>{strings.home.noUpcomingEvents}</Text>
         )}
 
+        <View style={styles.newsHeaderRow}>
+          <SectionHeader title={strings.home.newsSectionTitle} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('NewsList')}
+            accessibilityRole="button"
+            accessibilityLabel={strings.home.newsSeeAll}
+          >
+            <Text style={styles.newsLink}>{strings.home.newsSeeAll}</Text>
+          </TouchableOpacity>
+        </View>
+        {latestNews.length === 0 ? (
+          <Text style={styles.empty}>{strings.news.empty}</Text>
+        ) : (
+          latestNews.map((item) => (
+            <NewsCard
+              key={item.id}
+              news={item}
+              onPress={() => navigation.navigate('NewsDetail', { newsId: item.id })}
+            />
+          ))
+        )}
+
         {FEATURE_ZUKUNFTSTAG_ENABLED && (
           <>
             <SectionHeader title={strings.zukunftstag.cardSectionTitle} />
@@ -103,28 +125,6 @@ export const HomeScreen: FC = () => {
             <Text style={styles.quickLinkSubtitle}>{strings.home.newsSeeAll}</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.newsHeaderRow}>
-          <SectionHeader title={strings.home.newsSectionTitle} />
-          <TouchableOpacity
-            onPress={() => navigation.navigate('NewsList')}
-            accessibilityRole="button"
-            accessibilityLabel={strings.home.newsSeeAll}
-          >
-            <Text style={styles.newsLink}>{strings.home.newsSeeAll}</Text>
-          </TouchableOpacity>
-        </View>
-        {latestNews.length === 0 ? (
-          <Text style={styles.empty}>{strings.news.empty}</Text>
-        ) : (
-          latestNews.map((item) => (
-            <NewsCard
-              key={item.id}
-              news={item}
-              onPress={() => navigation.navigate('NewsDetail', { newsId: item.id })}
-            />
-          ))
-        )}
       </ScrollView>
     </SafeAreaView>
   );
