@@ -1,6 +1,14 @@
 import type { FC } from 'react';
 import { useCallback, useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView, RefreshControl } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+  RefreshControl,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppTabParamList, HomeStackParamList } from '../navigation/types';
@@ -17,6 +25,7 @@ import { ZukunftstagCard } from '../components/ZukunftstagCard';
 import { strings } from '../i18n/strings';
 import { useNews } from '../hooks/useNews';
 import { NewsCard } from '../components/NewsCard';
+import MittelstandLogo from '../assets/Logo-Der-Mittelstand.png';
 
 type HomeNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, 'Dashboard'>,
@@ -44,6 +53,13 @@ export const HomeScreen: FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} />
         }
       >
+        <View style={styles.brandBadge}>
+          <Image source={MittelstandLogo} style={styles.brandLogo} resizeMode="contain" />
+          <View style={styles.brandLabel}>
+            <Text style={styles.brandTitle}>Der Mittelstand.</Text>
+            <Text style={styles.brandSubtitle}>BVMW</Text>
+          </View>
+        </View>
         {FEATURE_ZUKUNFTSTAG_ENABLED && <ZukunftstagHero />}
         <Text style={styles.greeting}>{strings.home.greeting}</Text>
         <SectionHeader title={strings.home.nextEventSectionTitle} />
@@ -138,6 +154,38 @@ const styles = StyleSheet.create({
   container: {
     padding: spacing.lg,
     gap: spacing.lg,
+  },
+  brandBadge: {
+    alignSelf: 'flex-end',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: 12,
+    gap: spacing.sm,
+    shadowColor: '#00000014',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  brandLogo: {
+    width: 48,
+    height: 48,
+  },
+  brandLabel: {
+    gap: spacing.xs,
+  },
+  brandTitle: {
+    fontSize: typography.subheading,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  brandSubtitle: {
+    fontSize: typography.caption,
+    fontWeight: '600',
+    color: colors.muted,
   },
   greeting: {
     fontSize: typography.heading,
