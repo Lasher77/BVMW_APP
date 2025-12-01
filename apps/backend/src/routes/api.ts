@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { listEvents, getEvent, getMemberRegistrations } from '../services/eventService.js';
+import { createNews, getNews, listNews } from '../services/newsService.js';
 import {
   ChatError,
   listEventAttendees,
@@ -94,6 +95,58 @@ apiRouter.get('/events/:id/messages', async (req, res, next) => {
   } catch (error) {
     if (error instanceof ChatError) {
       return res.status(error.status).json({ ok: false, error: error.code });
+    }
+    next(error);
+  }
+});
+
+apiRouter.get('/news', async (req, res, next) => {
+  try {
+    const limit = typeof req.query.limit === 'string' ? Number.parseInt(req.query.limit, 10) : undefined;
+    const news = await listNews(limit ?? 10);
+    res.json({ news });
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.get('/news/:id', async (req, res, next) => {
+  try {
+    const article = await getNews(req.params.id);
+    if (!article) {
+      return res.status(404).json({ ok: false, error: 'not_found' });
+    }
+    res.json({ article });
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.post('/news', async (req, res, next) => {
+  const { headline, subline, content, author, imageUrl, downloadUrl, publishedAt } = req.body ?? {};
+  if (
+    typeof headline !== 'string' ||
+    typeof content !== 'string' ||
+    typeof author !== 'string' ||
+    typeof publishedAt !== 'string'
+  ) {
+    return res.status(400).json({ ok: false, error: 'invalid_payload' });
+  }
+
+  try {
+    const article = await createNews({
+      headline,
+      subline: typeof subline === 'string' ? subline : null,
+      content,
+      author,
+      imageUrl: typeof imageUrl === 'string' ? imageUrl : null,
+      downloadUrl: typeof downloadUrl === 'string' ? downloadUrl : null,
+      publishedAt,
+    });
+    res.status(201).json({ article });
+  } catch (error) {
+    if (error instanceof Error && error.message === 'invalid_date') {
+      return res.status(400).json({ ok: false, error: 'invalid_date' });
     }
     next(error);
   }

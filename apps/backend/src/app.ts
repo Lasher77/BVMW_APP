@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { apiRouter } from './routes/api.js';
 import { webhookRouter } from './routes/webhooks.js';
 import { logger } from './lib/logger.js';
+import { adminRouter } from './routes/admin.js';
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -45,6 +46,7 @@ export function createApp() {
 
   app.use('/webhooks', limiter, webhookRouter);
   app.use('/api', apiRouter);
+  app.use('/admin', adminRouter);
 
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     logger.error({ err }, 'Unhandled error');

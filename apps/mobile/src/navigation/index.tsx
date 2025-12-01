@@ -3,18 +3,21 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
 import { colors } from '../theme';
-import type { AppTabParamList, EventsStackParamList } from './types';
+import type { AppTabParamList, EventsStackParamList, HomeStackParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { EventsScreen } from '../screens/EventsScreen';
 import { EventDetailScreen } from '../screens/EventDetailScreen';
 import { EventChatScreen } from '../screens/EventChatScreen';
 import { TicketsScreen } from '../screens/TicketsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { NewsDetailScreen } from '../screens/NewsDetailScreen';
+import { NewsListScreen } from '../screens/NewsListScreen';
 
 enableScreens(true);
 
 const Tab = createBottomTabNavigator<AppTabParamList>();
 const EventsStack = createNativeStackNavigator<EventsStackParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 
 const navTheme = {
   ...DefaultTheme,
@@ -50,11 +53,21 @@ function EventsStackNavigator() {
   );
 }
 
+function HomeStackNavigator() {
+  return (
+    <HomeStack.Navigator>
+      <HomeStack.Screen name="Dashboard" component={HomeScreen} options={{ headerShown: false }} />
+      <HomeStack.Screen name="NewsList" component={NewsListScreen} options={{ title: 'News' }} />
+      <HomeStack.Screen name="NewsDetail" component={NewsDetailScreen} options={{ title: 'News' }} />
+    </HomeStack.Navigator>
+  );
+}
+
 export function RootNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator screenOptions={{ headerShown: false }}>
-        <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
+        <Tab.Screen name="Home" component={HomeStackNavigator} options={{ title: 'Home' }} />
         <Tab.Screen
           name="Events"
           component={EventsStackNavigator}
