@@ -8,7 +8,11 @@ import type {
   RegistrationSummary,
 } from './types';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_URL) {
+  throw new Error('EXPO_PUBLIC_API_URL is not set. Define it in apps/mobile/.env (see .env.example)');
+}
 
 async function request<T>(path: string): Promise<T> {
   const response = await fetch(`${API_URL}${path}`);
