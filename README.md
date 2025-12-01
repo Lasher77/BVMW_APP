@@ -66,6 +66,10 @@ The following snippet outlines a typical macOS Sonoma (Apple Silicon) setup for 
 
 You can now access the backend at `http://localhost:3000` and connect the Expo app via the QR code shown in the terminal.
 
+### News admin frontend
+
+The backend serves a lightweight HTML admin page for managing news articles. After starting the backend in development mode, open `http://localhost:3000/admin/news` in your browser to add or review articles (headline, subline, body text, author, image URL, optional download URL, and publication date). The latest entries automatically power the news preview on the mobile Home screen.
+
 ## Backend (`apps/backend`)
 
 ### Environment
@@ -84,6 +88,8 @@ pnpm prisma migrate dev
 pnpm prisma generate
 pnpm seed        # optional seed data
 ```
+
+If you pulled the repository after the news feature was added, re-run `pnpm prisma migrate dev` to apply the new `News` table migration before starting the server.
 
 ### Development
 
