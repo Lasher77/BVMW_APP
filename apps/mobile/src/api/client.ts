@@ -3,6 +3,8 @@ import type {
   ChatMessage,
   EventDetail,
   EventSummary,
+  NewsArticle,
+  NewsSummary,
   RegistrationSummary,
 } from './types';
 
@@ -65,4 +67,13 @@ export function sendEventMessage(eventId: string, payload: {
   content: string;
 }) {
   return post<{ message: ChatMessage }>(`/api/events/${eventId}/messages`, payload);
+}
+
+export function getNews(params: { limit?: number } = {}) {
+  const search = buildQueryString(params);
+  return request<{ news: NewsSummary[] }>(`/api/news${search ? `?${search}` : ''}`);
+}
+
+export function getNewsArticle(id: string) {
+  return request<{ article: NewsArticle }>(`/api/news/${id}`);
 }

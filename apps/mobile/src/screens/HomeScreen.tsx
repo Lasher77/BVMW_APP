@@ -3,8 +3,10 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import type { AppTabParamList } from '../navigation/types';
+import type { AppTabParamList, HomeStackParamList } from '../navigation/types';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEvents } from '../hooks/useEvents';
 import { EventCard } from '../components/EventCard';
 import { SectionHeader } from '../components/SectionHeader';
@@ -13,12 +15,21 @@ import { FEATURE_ZUKUNFTSTAG_ENABLED } from '../config/zukunftstag';
 import { ZukunftstagHero } from '../components/ZukunftstagHero';
 import { ZukunftstagCard } from '../components/ZukunftstagCard';
 import { strings } from '../i18n/strings';
+import { useNews } from '../hooks/useNews';
+import { NewsCard } from '../components/NewsCard';
+
+type HomeNavigationProp = CompositeNavigationProp<
+  NativeStackNavigationProp<HomeStackParamList, 'Dashboard'>,
+  BottomTabNavigationProp<AppTabParamList>
+>;
 
 export const HomeScreen: FC = () => {
-  const navigation = useNavigation<BottomTabNavigationProp<AppTabParamList>>();
+  const navigation = useNavigation<HomeNavigationProp>();
   const { data } = useEvents();
+  const { data: newsData } = useNews(3);
 
   const nextEvent = useMemo(() => data?.events?.[0], [data?.events]);
+  const latestNews = newsData?.news ?? [];
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -73,7 +84,37 @@ export const HomeScreen: FC = () => {
             <Text style={styles.quickLinkTitle}>Profil</Text>
             <Text style={styles.quickLinkSubtitle}>Meine Daten</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickLink}
+            onPress={() => navigation.navigate('NewsList')}
+            accessibilityRole="button"
+          >
+            <Text style={styles.quickLinkTitle}>News</Text>
+            <Text style={styles.quickLinkSubtitle}>{strings.home.newsSeeAll}</Text>
+          </TouchableOpacity>
         </View>
+
+        <View style={styles.newsHeaderRow}>
+          <SectionHeader title={strings.home.newsSectionTitle} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('NewsList')}
+            accessibilityRole="button"
+            accessibilityLabel={strings.home.newsSeeAll}
+          >
+            <Text style={styles.newsLink}>{strings.home.newsSeeAll}</Text>
+          </TouchableOpacity>
+        </View>
+        {latestNews.length === 0 ? (
+          <Text style={styles.empty}>{strings.news.empty}</Text>
+        ) : (
+          latestNews.map((item) => (
+            <NewsCard
+              key={item.id}
+              news={item}
+              onPress={() => navigation.navigate('NewsDetail', { newsId: item.id })}
+            />
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,5 +160,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     fontSize: typography.caption,
     color: colors.muted,
+  },
+  newsHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  newsLink: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
