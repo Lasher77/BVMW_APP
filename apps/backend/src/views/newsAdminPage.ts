@@ -81,7 +81,18 @@ export const newsAdminPage = `<!doctype html>
           newsList.innerHTML = data.news
             .map((item) => {
               const date = new Date(item.publishedAt).toLocaleDateString('de-DE');
-              return `<div class="item"><strong>${item.headline}</strong><div class="meta">${date} • ${item.author ?? ''}</div><div>${item.subline ?? ''}</div></div>`;
+              const subline = item.subline ? '<div>' + item.subline + '</div>' : '';
+              return (
+                '<div class="item"><strong>' +
+                item.headline +
+                '</strong><div class="meta">' +
+                date +
+                ' • ' +
+                (item.author ?? '') +
+                '</div>' +
+                subline +
+                '</div>'
+              );
             })
             .join('');
         } catch (error) {
