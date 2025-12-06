@@ -20,6 +20,20 @@ cp .env.example .env
 
 Set `WEBHOOK_AUTH_MODE=bearer` and populate `WEBHOOK_BEARER_TOKENS` with at least one token (optionally prefixed by a label such as `sf:`). The legacy `WEBHOOK_SHARED_SECRET` may remain unset unless HMAC mode is required.
 
+## Docker
+
+Build and run the backend in Docker using the repository root as the build context:
+
+```bash
+# Build the image
+docker build -f apps/backend/Dockerfile -t bvmw-backend .
+
+# Start the container (ensure DATABASE_URL and webhook secrets are set appropriately)
+docker run --env-file apps/backend/.env.example -p 3000:3000 bvmw-backend
+```
+
+Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
+
 ## Bearer Auth Examples
 
 ### Campaign Upsert
