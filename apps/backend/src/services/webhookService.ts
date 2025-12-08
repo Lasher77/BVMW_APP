@@ -1,6 +1,10 @@
 import { DateTime } from 'luxon';
 import { z } from 'zod';
 import pkg from '@prisma/client';
+
+import type { Prisma as PrismaNamespace, RegistrationStatus as RegistrationStatusType } from '@prisma/client';
+
+
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { sanitizeHtml } from '../utils/sanitize.js';
@@ -100,7 +104,7 @@ export async function recordWebhookEvent(params: {
       data: {
         source,
         idempotencyKey,
-        payload: payload as Prisma.InputJsonValue,
+        payload: payload as PrismaNamespace.InputJsonValue,
         status: 'accepted',
       },
     });
@@ -130,7 +134,7 @@ export async function processCampaignUpsert(payload: unknown) {
   const sanitizedDescription = sanitizeHtml(campaign.description ?? null);
   const geo = campaign.venue?.geo ?? null;
   const preferredTitle = (campaign.title ?? '').trim() || campaign.name;
-  const createData: Prisma.EventUncheckedCreateInput = {
+  const createData: PrismaNamespace.EventUncheckedCreateInput = {
     sfCampaignId: campaign.id,
     title: preferredTitle,
     subtitle: campaign.subtitle ?? null,
@@ -208,7 +212,7 @@ export async function processAttendeeUpsert(payload: unknown) {
     },
   });
 
-  let status: RegistrationStatus = statusFromPayload;
+  let status: RegistrationStatusType = statusFromPayload;
   let checkInAt: Date | null = null;
   if (parsed.check_in_at) {
     const parsedDate = DateTime.fromISO(parsed.check_in_at, { setZone: true });
@@ -231,7 +235,7 @@ export async function processAttendeeUpsert(payload: unknown) {
       dooEventId: parsed.doo?.event_id ?? null,
       dooAttendeeId: parsed.doo?.attendee_id ?? null,
       dooBookingId: parsed.doo?.booking_id ?? null,
-      sources: parsed as unknown as Prisma.InputJsonValue,
+      sources: parsed as unknown as PrismaNamespace.InputJsonValue,
     },
     create: {
       eventId: event.id,
@@ -241,7 +245,7 @@ export async function processAttendeeUpsert(payload: unknown) {
       dooEventId: parsed.doo?.event_id ?? null,
       dooAttendeeId: parsed.doo?.attendee_id ?? null,
       dooBookingId: parsed.doo?.booking_id ?? null,
-      sources: parsed as unknown as Prisma.InputJsonValue,
+      sources: parsed as unknown as PrismaNamespace.InputJsonValue,
     },
     include: {
       event: true,
