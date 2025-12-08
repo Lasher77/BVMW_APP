@@ -29,7 +29,7 @@ Build and run the backend in Docker using the repository root as the build conte
 docker build -f apps/backend/Dockerfile -t bvmw-backend .
 
 # Start the container (ensure DATABASE_URL and webhook secrets are set appropriately)
-docker run --env-file apps/backend/.env.example -p 3000:3000 bvmw-backend
+docker run --env-file apps/backend/.env.example -p 3005:3005 bvmw-backend
 ```
 
 Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
@@ -54,7 +54,7 @@ The script will:
 - build the `bvmw-backend` image from the monorepo root
 - apply Prisma migrations via `prisma migrate deploy`
 - verify migration status
-- restart a `bvmw-backend` container on port `3000`
+- restart a `bvmw-backend` container on port `3005`
 
 
 ## Bearer Auth Examples
@@ -88,7 +88,7 @@ PAYLOAD='{
   }
 }'
 
-curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
+curl -X POST http://localhost:3005/webhooks/salesforce/campaign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Idempotency-Key: demo-campaign-001" \
@@ -109,7 +109,7 @@ PAYLOAD='{
   "updated_at": "2024-08-01T09:30:00+02:00"
 }'
 
-curl -X POST http://localhost:3000/webhooks/salesforce/attendee \
+curl -X POST http://localhost:3005/webhooks/salesforce/attendee \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Idempotency-Key: demo-attendee-001" \
@@ -135,7 +135,7 @@ PAYLOAD='{
 }'
 SIGNATURE=$(printf "%s.%s" "$TIMESTAMP" "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
 
-curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
+curl -X POST http://localhost:3005/webhooks/salesforce/campaign \
   -H "Content-Type: application/json" \
   -H "X-Timestamp: $TIMESTAMP" \
   -H "X-Signature: $SIGNATURE" \

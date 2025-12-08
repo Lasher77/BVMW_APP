@@ -65,8 +65,8 @@ if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 fi
 
-echo "Starting container '${CONTAINER_NAME}' on port 3000..."
-docker run --env-file "$ENV_FILE" -d --name "$CONTAINER_NAME" -p 3000:3000 "$IMAGE_NAME"
+echo "Starting container '${CONTAINER_NAME}' on port 3005..."
+docker run --env-file "$ENV_FILE" -d --name "$CONTAINER_NAME" -p 3005:3005 "$IMAGE_NAME"
 
 echo "Container is running. Tail logs with: docker logs -f $CONTAINER_NAME"
 

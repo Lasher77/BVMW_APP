@@ -6,7 +6,7 @@ info:
     Backend for the BVMW Mitglieder-App MVP. Provides event listings and webhook endpoints
     for Salesforce and doo integrations.
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3005
 paths:
   /healthz:
     get:

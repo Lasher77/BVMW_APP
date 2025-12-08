@@ -6,7 +6,7 @@ config();
 const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    PORT: z.coerce.number().int().min(1).max(65535).default(3005),
     DATABASE_URL: z.string().url(),
     WEBHOOK_SHARED_SECRET: z.string().min(8),
     WEBHOOK_AUTH_MODE: z.enum(['bearer', 'hmac']).default('bearer'),
