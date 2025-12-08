@@ -34,6 +34,7 @@ docker run --env-file apps/backend/.env.example -p 3000:3000 bvmw-backend
 
 Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
 
+
 ### Start script (build + migrate + run)
 
 Use the helper script to build the image, run Prisma migrations (and check their status), and start the container. Provide your environment file (must contain `DATABASE_URL` and webhook secrets):
@@ -48,6 +49,7 @@ The script will:
 - apply Prisma migrations via `prisma migrate deploy`
 - verify migration status
 - restart a `bvmw-backend` container on port `3000`
+
 
 ## Bearer Auth Examples
 
