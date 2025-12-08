@@ -6,6 +6,7 @@ Incoming webhooks authenticate with a Bearer token by default. Legacy HMAC signa
 
 | Variable | Description |
 | --- | --- |
+| `DATABASE_URL` | Database connection string (e.g. `postgresql://user:pass@host:5432/db`). Prisma `file:` URLs for SQLite are also accepted. |
 | `WEBHOOK_AUTH_MODE` | `bearer` (default) or `hmac`. Controls which authentication strategy is active. |
 | `WEBHOOK_BEARER_TOKENS` | Comma-separated list of allowed tokens. Optional labels can be prefixed via `label:token` (e.g. `sf:token-a,doo:token-b`). |
 | `WEBHOOK_SHARED_SECRET` | Legacy HMAC secret. Only evaluated when `WEBHOOK_AUTH_MODE=hmac`. |
