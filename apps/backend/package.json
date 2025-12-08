@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
+    "prebuild": "prisma generate",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint --ext .ts src",
     "test": "jest",

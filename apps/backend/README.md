@@ -20,6 +20,35 @@ cp .env.example .env
 
 Set `WEBHOOK_AUTH_MODE=bearer` and populate `WEBHOOK_BEARER_TOKENS` with at least one token (optionally prefixed by a label such as `sf:`). The legacy `WEBHOOK_SHARED_SECRET` may remain unset unless HMAC mode is required.
 
+## Docker
+
+Build and run the backend in Docker using the repository root as the build context:
+
+```bash
+# Build the image
+docker build -f apps/backend/Dockerfile -t bvmw-backend .
+
+# Start the container (ensure DATABASE_URL and webhook secrets are set appropriately)
+docker run --env-file apps/backend/.env.example -p 3000:3000 bvmw-backend
+```
+
+Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
+
+### Start script (build + migrate + run)
+
+Use the helper script to build the image, run Prisma migrations (and check their status), and start the container. Provide your environment file (must contain `DATABASE_URL` and webhook secrets). The script resolves the repository root automatically, so it can be run from any working directory:
+
+```bash
+./apps/backend/scripts/start-backend-docker.sh apps/backend/.env
+```
+
+The script will:
+
+- build the `bvmw-backend` image from the monorepo root
+- apply Prisma migrations via `prisma migrate deploy`
+- verify migration status
+- restart a `bvmw-backend` container on port `3000`
+
 ## Bearer Auth Examples
 
 ### Campaign Upsert
