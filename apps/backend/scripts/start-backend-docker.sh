@@ -28,6 +28,20 @@ fi
 
 pushd "$ROOT_DIR" >/dev/null
 
+# Ensure pnpm is available (install via corepack if possible).
+if ! command -v pnpm >/dev/null 2>&1; then
+  if command -v corepack >/dev/null 2>&1; then
+    echo "pnpm not found; attempting to activate via corepack..."
+    corepack enable >/dev/null 2>&1 || true
+    corepack prepare pnpm@latest --activate >/dev/null 2>&1 || true
+  fi
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pnpm is required but could not be found. Install pnpm or enable corepack before rerunning." >&2
+  exit 1
+fi
+
 # Build the image from the monorepo root so pnpm workspaces resolve correctly.
 echo "Building Docker image '$IMAGE_NAME'..."
 docker build -f "$DOCKERFILE_PATH" -t "$IMAGE_NAME" .
