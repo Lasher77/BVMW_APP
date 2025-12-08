@@ -1,11 +1,13 @@
 import { DateTime } from 'luxon';
 import { z } from 'zod';
-import { Prisma, RegistrationStatus } from '@prisma/client';
+import pkg from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { logger } from '../lib/logger.js';
 import { sanitizeHtml } from '../utils/sanitize.js';
 import { mapRegistrationStatus } from './statusMapper.js';
 import { WebhookProcessingError } from './webhookError.js';
+
+const { Prisma, RegistrationStatus } = pkg;
 
 const campaignWebhookSchema = z.object({
   event_type: z.literal('campaign.upsert'),
