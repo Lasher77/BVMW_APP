@@ -25,7 +25,10 @@ COPY packages ./packages
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY apps/backend/prisma ./apps/backend/prisma
 RUN pnpm install --frozen-lockfile --filter backend... --prod
-COPY --from=builder /app/apps/backend/node_modules/.prisma ./apps/backend/node_modules/.prisma
+# Prisma generates its engines inside the pnpm store, not under package-level node_modules.
+# Copy the generated engines from the builder stage so the production image can access them
+# without installing dev dependencies.
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma ./node_modules/.pnpm/@prisma+client@*/node_modules/.prisma
 RUN pnpm --filter backend... prisma:generate
 
 
