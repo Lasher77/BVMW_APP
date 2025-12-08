@@ -18,7 +18,7 @@ COPY apps/backend ./apps/backend
 RUN pnpm --filter backend... prisma:generate
 RUN pnpm --filter backend... build
 # pnpm prune no longer supports --filter; dependencies were already scoped during install
-RUN pnpm prune --prod
+RUN CI=true pnpm prune --prod
 
 FROM base AS runner
 ENV NODE_ENV=production
