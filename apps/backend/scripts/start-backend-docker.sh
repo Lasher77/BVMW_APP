@@ -4,7 +4,21 @@ set -euo pipefail
 # Starts the backend Docker image after ensuring Prisma migrations are applied.
 # Usage: ./apps/backend/scripts/start-backend-docker.sh [path-to-env-file]
 
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Resolve repository root (prefer git, fall back to relative path traversal).
+if command -v git >/dev/null 2>&1; then
+  ROOT_DIR="$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+
+if [[ -z "${ROOT_DIR:-}" ]]; then
+  ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+fi
+
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 ENV_FILE="${1:-$ROOT_DIR/apps/backend/.env}"
 IMAGE_NAME="bvmw-backend"
 CONTAINER_NAME="bvmw-backend"
