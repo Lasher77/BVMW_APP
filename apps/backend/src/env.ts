@@ -7,7 +7,33 @@ const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().min(1).max(65535).default(3005),
-    DATABASE_URL: z.string().url(),
+    DATABASE_URL: z
+      .string()
+      .transform((value) => value.trim())
+      .superRefine((value, ctx) => {
+        if (!value) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'DATABASE_URL is required.',
+          });
+          return;
+        }
+
+        if (value.startsWith('file:')) {
+          return;
+        }
+
+        try {
+          // Accept any absolute URL (e.g. postgresql://, mysql://, prisma://...)
+          new URL(value);
+        } catch (error) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              'Invalid DATABASE_URL. Provide a full connection string (e.g. postgresql://user:pass@host:5432/db) or a Prisma file: path.',
+          });
+        }
+      }),
     WEBHOOK_SHARED_SECRET: z.string().min(8),
     WEBHOOK_AUTH_MODE: z.enum(['bearer', 'hmac']).default('bearer'),
     WEBHOOK_BEARER_TOKENS: z
