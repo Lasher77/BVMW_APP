@@ -25,6 +25,9 @@ COPY packages ./packages
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY apps/backend/prisma ./apps/backend/prisma
 RUN pnpm install --frozen-lockfile --filter backend... --prod
+# Generate the Prisma client in the production dependency layer so it is
+# available when the runtime container starts up.
+RUN pnpm dlx prisma generate --schema apps/backend/prisma/schema.prisma
 # Prisma generates its engines inside the pnpm store, not under package-level node_modules.
 # Copy the generated engines from the builder stage so the production image can access them
 # without installing dev dependencies.
