@@ -29,6 +29,7 @@ RUN pnpm install --frozen-lockfile --filter backend... --prod
 # Copy the generated engines from the builder stage so the production image can access them
 # without installing dev dependencies.
 COPY --from=builder /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma ./node_modules/.pnpm/@prisma+client@*/node_modules/.prisma
+COPY --from=builder /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma ./apps/backend/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma
 
 
 FROM base AS runner
