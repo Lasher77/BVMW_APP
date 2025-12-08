@@ -17,8 +17,8 @@ COPY --from=deps /app /app
 COPY apps/backend ./apps/backend
 RUN pnpm --filter backend... prisma:generate
 RUN pnpm --filter backend... build
-# Limit pruning to backend to keep its production dependencies available at runtime
-RUN CI=true pnpm prune --prod --filter backend...
+# pnpm@10 no longer supports filtering on prune; remove dev dependencies workspace-wide
+RUN CI=true pnpm prune --prod
 
 FROM base AS runner
 ENV NODE_ENV=production
