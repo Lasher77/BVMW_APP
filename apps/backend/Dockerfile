@@ -24,11 +24,8 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages ./packages
 COPY apps/backend/package.json ./apps/backend/package.json
 COPY apps/backend/prisma ./apps/backend/prisma
-RUN pnpm install --frozen-lockfile --filter backend...
+RUN pnpm install --frozen-lockfile --filter backend... --prod
 RUN pnpm --filter backend... prisma:generate
-
-# pnpm@10 no longer supports filtering on prune; remove dev dependencies workspace-wide
-RUN CI=true pnpm prune --prod
 
 
 FROM base AS runner
