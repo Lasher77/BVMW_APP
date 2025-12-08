@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "prisma generate",
+    "prestart": "prisma generate",
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
     "prebuild": "prisma generate",
