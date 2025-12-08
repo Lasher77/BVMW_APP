@@ -26,6 +26,7 @@ COPY apps/backend/package.json ./apps/backend/package.json
 COPY apps/backend/prisma ./apps/backend/prisma
 RUN pnpm install --frozen-lockfile --filter backend... --prod
 COPY --from=builder /app/apps/backend/node_modules/.prisma ./apps/backend/node_modules/.prisma
+RUN pnpm --filter backend... prisma:generate
 
 
 FROM base AS runner
