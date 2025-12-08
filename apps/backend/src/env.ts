@@ -19,7 +19,8 @@ const envSchema = z
           return;
         }
 
-        if (value.startsWith('file:')) {
+        // Allow Prisma SQLite file paths without forcing the file: prefix
+        if (value.startsWith('file:') || value.startsWith('/') || value.startsWith('./') || value.startsWith('../')) {
           return;
         }
 
