@@ -7,17 +7,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Resolve repository root (prefer git, fall back to relative path traversal).
+# Resolve repository root (prefer git, fall back to script-relative path).
 if command -v git >/dev/null 2>&1; then
   ROOT_DIR="$(cd "$SCRIPT_DIR" && git rev-parse --show-toplevel 2>/dev/null || true)"
 fi
 
 if [[ -z "${ROOT_DIR:-}" ]]; then
-  ROOT_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+  ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 fi
-
-
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 ENV_FILE="${1:-$ROOT_DIR/apps/backend/.env}"
 IMAGE_NAME="bvmw-backend"
