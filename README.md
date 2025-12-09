@@ -17,6 +17,18 @@ This repository contains the MVP implementation for the BVMW Mitglieder-App. It 
 - pnpm 8+
 - PostgreSQL instance for local development
 
+### Docker (backend + Postgres)
+
+You can run the backend together with a local Postgres instance via Docker Compose. Copy the Docker-specific environment file and start the stack from the repository root:
+
+```bash
+cp apps/backend/.env.docker.example apps/backend/.env.docker
+# Update WEBHOOK_BEARER_TOKENS / WEBHOOK_SHARED_SECRET as needed
+docker compose up --build
+```
+
+The backend will be reachable on `http://localhost:3005`, and Postgres will be exposed on port `5432`. Prisma migrations are not applied automatically; run them locally before starting the stack if you need schema changes reflected in the container.
+
 ### macOS local testing setup
 
 The following snippet outlines a typical macOS Sonoma (Apple Silicon) setup for evaluating the project locally:
