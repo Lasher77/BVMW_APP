@@ -40,10 +40,13 @@ COPY --from=builder /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prism
 FROM base AS runner
 ENV NODE_ENV=production
 WORKDIR /app
+COPY --from=prod-deps /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/package.json ./
+COPY --from=prod-deps /app/apps/backend/package.json ./apps/backend/package.json
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/apps/backend/node_modules ./apps/backend/node_modules
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 COPY apps/backend/.env.example ./apps/backend/.env.example
+WORKDIR /app/apps/backend
 EXPOSE 3005
-CMD ["node", "apps/backend/dist/main.js"]
+CMD ["pnpm", "start"]
