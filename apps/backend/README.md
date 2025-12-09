@@ -35,6 +35,18 @@ docker run --env-file apps/backend/.env.example -p 3005:3005 bvmw-backend
 
 Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
 
+### Docker Compose (backend + Postgres)
+
+To run the backend together with Postgres locally, create a Docker-specific environment file and start the stack from the monorepo root:
+
+```bash
+cp apps/backend/.env.docker.example apps/backend/.env.docker
+# Update WEBHOOK_BEARER_TOKENS / WEBHOOK_SHARED_SECRET as needed
+docker compose up --build
+```
+
+The stack will expose the backend on `http://localhost:3005` and Postgres on port `5432`. Apply Prisma migrations locally before launching the containers if you need the latest schema inside the database.
+
 
 ### Start script (build + migrate + run)
 
