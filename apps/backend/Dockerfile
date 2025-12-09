@@ -49,4 +49,8 @@ COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 COPY apps/backend/.env.example ./apps/backend/.env.example
 WORKDIR /app/apps/backend
 EXPOSE 3005
+
 CMD ["pnpm", "start"]
+
+CMD ["pnpm", "--filter", "backend...", "start"]
+
