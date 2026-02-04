@@ -18,7 +18,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEvents } from '../hooks/useEvents';
 import { EventCard } from '../components/EventCard';
 import { SectionHeader } from '../components/SectionHeader';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { FEATURE_ZUKUNFTSTAG_ENABLED } from '../config/zukunftstag';
 import { ZukunftstagHero } from '../components/ZukunftstagHero';
 import { ZukunftstagCard } from '../components/ZukunftstagCard';
@@ -34,6 +35,7 @@ type HomeNavigationProp = CompositeNavigationProp<
 
 export const HomeScreen: FC = () => {
   const navigation = useNavigation<HomeNavigationProp>();
+  const colors = useColors();
   const { data, isRefetching: isEventsRefetching, refetch: refetchEvents } = useEvents();
   const { data: newsData, isRefetching: isNewsRefetching, refetch: refetchNews } = useNews(3);
 
@@ -44,6 +46,94 @@ export const HomeScreen: FC = () => {
   const handleRefresh = useCallback(() => {
     void Promise.all([refetchEvents(), refetchNews()]);
   }, [refetchEvents, refetchNews]);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        container: {
+          padding: spacing.lg,
+          gap: spacing.lg,
+        },
+        brandBadge: {
+          alignSelf: 'flex-end',
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: colors.card,
+          paddingVertical: spacing.xs,
+          paddingHorizontal: spacing.md,
+          borderRadius: 12,
+          gap: spacing.sm,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.12,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 3,
+        },
+        brandLogo: {
+          width: 48,
+          height: 48,
+        },
+        brandLabel: {
+          gap: spacing.xs,
+        },
+        brandTitle: {
+          fontSize: typography.subheading,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        brandSubtitle: {
+          fontSize: typography.caption,
+          fontWeight: '600',
+          color: colors.muted,
+        },
+        greeting: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        empty: {
+          color: colors.muted,
+          fontSize: typography.body,
+        },
+        quickLinks: {
+          gap: spacing.md,
+        },
+        quickLink: {
+          backgroundColor: colors.card,
+          padding: spacing.lg,
+          borderRadius: 16,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 2,
+        },
+        quickLinkTitle: {
+          fontSize: typography.subheading,
+          fontWeight: '600',
+          color: colors.text,
+        },
+        quickLinkSubtitle: {
+          marginTop: spacing.xs,
+          fontSize: typography.caption,
+          color: colors.muted,
+        },
+        newsHeaderRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+        newsLink: {
+          color: colors.primary,
+          fontWeight: '600',
+        },
+      }),
+    [colors]
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -145,87 +235,3 @@ export const HomeScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  container: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  brandBadge: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: 12,
-    gap: spacing.sm,
-    shadowColor: '#00000014',
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  brandLogo: {
-    width: 48,
-    height: 48,
-  },
-  brandLabel: {
-    gap: spacing.xs,
-  },
-  brandTitle: {
-    fontSize: typography.subheading,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  brandSubtitle: {
-    fontSize: typography.caption,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  greeting: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  empty: {
-    color: colors.muted,
-    fontSize: typography.body,
-  },
-  quickLinks: {
-    gap: spacing.md,
-  },
-  quickLink: {
-    backgroundColor: colors.background,
-    padding: spacing.lg,
-    borderRadius: 16,
-    shadowColor: '#0000001A',
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  quickLinkTitle: {
-    fontSize: typography.subheading,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  quickLinkSubtitle: {
-    marginTop: spacing.xs,
-    fontSize: typography.caption,
-    color: colors.muted,
-  },
-  newsHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  newsLink: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});

@@ -1,8 +1,8 @@
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
-import { colors } from '../theme';
+import { useTheme } from '../theme/ThemeContext';
 import type { AppTabParamList, EventsStackParamList, HomeStackParamList } from './types';
 import { HomeScreen } from '../screens/HomeScreen';
 import { EventsScreen } from '../screens/EventsScreen';
@@ -18,18 +18,6 @@ enableScreens(true);
 const Tab = createBottomTabNavigator<AppTabParamList>();
 const EventsStack = createNativeStackNavigator<EventsStackParamList>();
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
-
-const navTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: colors.background,
-    primary: colors.primary,
-    card: colors.background,
-    text: colors.text,
-    border: colors.border,
-  },
-};
 
 function EventsStackNavigator() {
   return (
@@ -64,6 +52,22 @@ function HomeStackNavigator() {
 }
 
 export function RootNavigator() {
+  const { theme, isDark } = useTheme();
+  const { colors } = theme;
+
+  const navTheme = {
+    ...(isDark ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(isDark ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.background,
+      primary: colors.primary,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.primary,
+    },
+  };
+
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator screenOptions={{ headerShown: false }}>

@@ -90,6 +90,8 @@ model Member {
   registrations Registration[]
   sentMessages   ChatMessage[] @relation("SenderMessages")
   receivedMessages ChatMessage[] @relation("RecipientMessages")
+  deviceTokens   DeviceToken[]
+  notifications  PushNotification[]
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 }
@@ -136,4 +138,43 @@ model WebhookEvent {
   error           String?        @db.Text
   createdAt       DateTime       @default(now()) @map("created_at")
   updatedAt       DateTime       @updatedAt @map("updated_at")
+}
+
+enum DeviceType {
+  ios
+  android
+  web
+}
+
+model DeviceToken {
+  id           String     @id @default(uuid())
+  member       Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId     String     @map("member_id")
+  token        String     @unique
+  deviceType   DeviceType @map("device_type")
+  isActive     Boolean    @default(true) @map("is_active")
+  lastUsedAt   DateTime?  @map("last_used_at") @db.Timestamptz(6)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@index([memberId])
+}
+
+enum NotificationStatus {
+  pending
+  sent
+  failed
+}
+
+model PushNotification {
+  id           String             @id @default(uuid())
+  member       Member?            @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  memberId     String?            @map("member_id")
+  title        String
+  body         String             @db.Text
+  data         Json?
+  status       NotificationStatus @default(pending)
+  sentAt       DateTime?          @map("sent_at") @db.Timestamptz(6)
+  error        String?            @db.Text
+  createdAt    DateTime           @default(now()) @map("created_at")
 }

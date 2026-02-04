@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useMemo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +8,8 @@ import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useNews } from '../hooks/useNews';
 import { NewsCard } from '../components/NewsCard';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import type { AppTabParamList, HomeStackParamList } from '../navigation/types';
 import { strings } from '../i18n/strings';
 
@@ -18,7 +20,32 @@ type NavigationProp = CompositeNavigationProp<
 
 export const NewsListScreen: FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const colors = useColors();
   const { data, isLoading, error, isRefetching, refetch } = useNews();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        container: {
+          padding: spacing.lg,
+        },
+        title: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          color: colors.text,
+          marginBottom: spacing.md,
+        },
+        status: {
+          color: colors.muted,
+          marginBottom: spacing.md,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -49,23 +76,3 @@ export const NewsListScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  container: {
-    padding: spacing.lg,
-  },
-  title: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  status: {
-    color: colors.muted,
-    marginBottom: spacing.md,
-  },
-});

@@ -7,6 +7,12 @@ import {
   listEventMessages,
   sendEventMessage,
 } from '../services/chatService.js';
+import {
+  registerDeviceToken,
+  unregisterDeviceToken,
+  sendPushNotification,
+} from '../services/notificationService.js';
+import type { DeviceType } from '@prisma/client';
 
 export const apiRouter = Router();
 
@@ -174,6 +180,63 @@ apiRouter.post('/events/:id/messages', async (req, res, next) => {
     if (error instanceof ChatError) {
       return res.status(error.status).json({ ok: false, error: error.code });
     }
+    next(error);
+  }
+});
+
+// Push Notification Endpoints
+
+apiRouter.post('/devices/register', async (req, res, next) => {
+  const { memberId, token, deviceType } = req.body ?? {};
+  if (
+    typeof memberId !== 'string' ||
+    typeof token !== 'string' ||
+    typeof deviceType !== 'string'
+  ) {
+    return res.status(400).json({ ok: false, error: 'invalid_payload' });
+  }
+
+  const validDeviceTypes: DeviceType[] = ['ios', 'android', 'web'];
+  if (!validDeviceTypes.includes(deviceType as DeviceType)) {
+    return res.status(400).json({ ok: false, error: 'invalid_device_type' });
+  }
+
+  try {
+    const result = await registerDeviceToken(memberId, token, deviceType as DeviceType);
+    res.status(201).json({ ok: true, deviceId: result.id });
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.post('/devices/unregister', async (req, res, next) => {
+  const { token } = req.body ?? {};
+  if (typeof token !== 'string') {
+    return res.status(400).json({ ok: false, error: 'invalid_payload' });
+  }
+
+  try {
+    await unregisterDeviceToken(token);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.post('/notifications/send', async (req, res, next) => {
+  const { memberId, title, body, data } = req.body ?? {};
+  if (
+    typeof memberId !== 'string' ||
+    typeof title !== 'string' ||
+    typeof body !== 'string'
+  ) {
+    return res.status(400).json({ ok: false, error: 'invalid_payload' });
+  }
+
+  try {
+    const result = await sendPushNotification(memberId, title, body, data);
+    res.json({ ok: true, ...result });
+  } catch (error) {
     next(error);
   }
 });

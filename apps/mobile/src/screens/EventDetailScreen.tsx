@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -18,7 +19,8 @@ import type { RouteProp } from '@react-navigation/native';
 import { useEvent } from '../hooks/useEvents';
 import { useEventAttendees } from '../hooks/useChat';
 import type { EventsStackParamList } from '../navigation/types';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { formatDateRange } from '../utils/date';
 import { stripHtml } from '../utils/html';
 import { currentMemberId } from '../config/member';
@@ -28,7 +30,8 @@ const placeholderImage = 'https://placehold.co/800x400/E30613/FFFFFF?text=BVMW';
 export const EventDetailScreen: FC = () => {
   const route = useRoute<RouteProp<EventsStackParamList, 'EventDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<EventsStackParamList>>();
-  const { data, isLoading } = useEvent(route.params.eventId);
+  const colors = useColors();
+  const { data, isLoading, refetch, isRefetching } = useEvent(route.params.eventId);
   const { data: attendeesData, isLoading: attendeesLoading } = useEventAttendees(
     route.params.eventId,
   );
@@ -38,6 +41,116 @@ export const EventDetailScreen: FC = () => {
       navigation.setOptions({ title: data.event.title });
     }
   }, [data?.event?.title, navigation]);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        container: {
+          paddingBottom: spacing.xl,
+        },
+        hero: {
+          width: '100%',
+          height: 220,
+        },
+        section: {
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+          gap: spacing.sm,
+        },
+        title: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        subtitle: {
+          fontSize: typography.body,
+          color: colors.muted,
+        },
+        meta: {
+          color: colors.muted,
+          fontSize: typography.caption,
+        },
+        sectionTitle: {
+          fontSize: typography.subheading,
+          fontWeight: '600',
+          color: colors.text,
+        },
+        body: {
+          fontSize: typography.body,
+          color: colors.text,
+          lineHeight: 22,
+        },
+        mapPreview: {
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          padding: spacing.lg,
+          borderColor: colors.border,
+          borderWidth: 1,
+        },
+        mapText: {
+          fontSize: typography.body,
+          color: colors.text,
+        },
+        mapHint: {
+          marginTop: spacing.xs,
+          fontSize: typography.caption,
+          color: colors.primary,
+        },
+        attendeeRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+        },
+        attendeeName: {
+          fontSize: typography.body,
+          color: colors.text,
+          fontWeight: '600',
+        },
+        attendeeCompany: {
+          fontSize: typography.caption,
+          color: colors.muted,
+        },
+        chatButton: {
+          backgroundColor: colors.primary,
+          paddingHorizontal: spacing.md,
+          paddingVertical: spacing.sm,
+          borderRadius: 999,
+        },
+        chatButtonLabel: {
+          color: '#FFFFFF',
+          fontWeight: '600',
+          fontSize: typography.caption,
+        },
+        cta: {
+          marginHorizontal: spacing.lg,
+          marginVertical: spacing.lg,
+          backgroundColor: colors.primary,
+          padding: spacing.md,
+          borderRadius: 999,
+          alignItems: 'center',
+        },
+        ctaText: {
+          color: '#FFFFFF',
+          fontSize: typography.subheading,
+          fontWeight: '600',
+        },
+        loadingContainer: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.surface,
+        },
+        error: {
+          color: colors.muted,
+          fontSize: typography.body,
+        },
+      }),
+    [colors]
+  );
 
   if (isLoading) {
     return (
@@ -74,7 +187,12 @@ export const EventDetailScreen: FC = () => {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.primary]} />
+        }
+      >
         <Image
           source={{ uri: event.headerImageUrl ?? placeholderImage }}
           style={styles.hero}
@@ -144,109 +262,3 @@ export const EventDetailScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  container: {
-    paddingBottom: spacing.xl,
-  },
-  hero: {
-    width: '100%',
-    height: 220,
-  },
-  section: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
-  },
-  title: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subtitle: {
-    fontSize: typography.body,
-    color: colors.muted,
-  },
-  meta: {
-    color: colors.muted,
-    fontSize: typography.caption,
-  },
-  sectionTitle: {
-    fontSize: typography.subheading,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  body: {
-    fontSize: typography.body,
-    color: colors.text,
-    lineHeight: 22,
-  },
-  mapPreview: {
-    backgroundColor: colors.background,
-    borderRadius: 16,
-    padding: spacing.lg,
-    borderColor: colors.border,
-    borderWidth: 1,
-  },
-  mapText: {
-    fontSize: typography.body,
-    color: colors.text,
-  },
-  mapHint: {
-    marginTop: spacing.xs,
-    fontSize: typography.caption,
-    color: colors.primary,
-  },
-  attendeeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  attendeeName: {
-    fontSize: typography.body,
-    color: colors.text,
-    fontWeight: '600',
-  },
-  attendeeCompany: {
-    fontSize: typography.caption,
-    color: colors.muted,
-  },
-  chatButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: 999,
-  },
-  chatButtonLabel: {
-    color: colors.background,
-    fontWeight: '600',
-    fontSize: typography.caption,
-  },
-  cta: {
-    marginHorizontal: spacing.lg,
-    marginVertical: spacing.lg,
-    backgroundColor: colors.primary,
-    padding: spacing.md,
-    borderRadius: 999,
-    alignItems: 'center',
-  },
-  ctaText: {
-    color: colors.background,
-    fontSize: typography.subheading,
-    fontWeight: '600',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-  },
-  error: {
-    color: colors.muted,
-    fontSize: typography.body,
-  },
-});

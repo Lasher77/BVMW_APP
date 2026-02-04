@@ -1,8 +1,9 @@
 import type { FC } from 'react';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { EventSummary } from '../api/types';
-import { colors, radii, spacing, typography } from '../theme';
+import { radii, spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { formatDateRange } from '../utils/date';
 import { createNumberFormatter } from '../utils/intl';
 
@@ -19,10 +20,71 @@ const distanceFormatter = createNumberFormatter({
 });
 
 const EventCardComponent: FC<Props> = ({ event, onPress }) => {
+  const colors = useColors();
   const formattedDistance =
     typeof event.distanceKm === 'number'
       ? `${distanceFormatter.format(event.distanceKm)} km entfernt`
       : null;
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        card: {
+          backgroundColor: colors.card,
+          borderRadius: radii.md,
+          overflow: 'hidden',
+          marginBottom: spacing.lg,
+          shadowColor: colors.shadow,
+          shadowOpacity: 0.1,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 2,
+        },
+        image: {
+          width: '100%',
+          height: 160,
+        },
+        content: {
+          padding: spacing.md,
+          gap: spacing.sm,
+        },
+        date: {
+          color: colors.muted,
+          fontSize: typography.caption,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        },
+        title: {
+          fontSize: typography.subheading,
+          fontWeight: '600',
+          color: colors.text,
+        },
+        metaRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+        },
+        meta: {
+          color: colors.muted,
+          fontSize: typography.caption,
+        },
+        tags: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: spacing.xs,
+        },
+        tag: {
+          backgroundColor: colors.surfaceHighlight,
+          borderRadius: radii.sm,
+          paddingVertical: 2,
+          paddingHorizontal: spacing.sm,
+        },
+        tagText: {
+          fontSize: typography.caption,
+          color: colors.muted,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <TouchableOpacity
@@ -58,59 +120,3 @@ const EventCardComponent: FC<Props> = ({ event, onPress }) => {
 };
 
 export const EventCard = memo(EventCardComponent);
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.background,
-    borderRadius: radii.md,
-    overflow: 'hidden',
-    marginBottom: spacing.lg,
-    shadowColor: '#0000001A',
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  image: {
-    width: '100%',
-    height: 160,
-  },
-  content: {
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  date: {
-    color: colors.muted,
-    fontSize: typography.caption,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  title: {
-    fontSize: typography.subheading,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  meta: {
-    color: colors.muted,
-    fontSize: typography.caption,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  tag: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.sm,
-    paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
-  },
-  tagText: {
-    fontSize: typography.caption,
-    color: colors.muted,
-  },
-});
