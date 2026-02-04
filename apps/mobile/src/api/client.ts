@@ -8,7 +8,7 @@ import type {
   RegistrationSummary,
 } from './types';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 if (!API_URL) {
   throw new Error('EXPO_PUBLIC_API_URL is not set. Define it in apps/mobile/.env (see .env.example)');

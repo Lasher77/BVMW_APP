@@ -1,14 +1,6 @@
 import type { FC } from 'react';
 import { useCallback, useMemo } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  RefreshControl,
-  Image,
-} from 'react-native';
+import { StyleSheet, Text, View, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppTabParamList, HomeStackParamList } from '../navigation/types';
@@ -16,17 +8,17 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useEvents } from '../hooks/useEvents';
-import { EventCard } from '../components/EventCard';
-import { SectionHeader } from '../components/SectionHeader';
+import { useNews } from '../hooks/useNews';
 import { spacing, typography } from '../theme';
 import { useColors } from '../theme/ThemeContext';
 import { FEATURE_ZUKUNFTSTAG_ENABLED } from '../config/zukunftstag';
 import { ZukunftstagHero } from '../components/ZukunftstagHero';
-import { ZukunftstagCard } from '../components/ZukunftstagCard';
-import { strings } from '../i18n/strings';
-import { useNews } from '../hooks/useNews';
-import { NewsCard } from '../components/NewsCard';
-import MittelstandLogo from '../assets/Logo-Der-Mittelstand.png';
+
+// New Apple-style components
+import { HeroHeader } from '../components/HeroHeader';
+import { FeaturedEventCard } from '../components/FeaturedEventCard';
+import { QuickActions } from '../components/QuickActions';
+import { NewsCarousel } from '../components/NewsCarousel';
 
 type HomeNavigationProp = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, 'Dashboard'>,
@@ -37,7 +29,7 @@ export const HomeScreen: FC = () => {
   const navigation = useNavigation<HomeNavigationProp>();
   const colors = useColors();
   const { data, isRefetching: isEventsRefetching, refetch: refetchEvents } = useEvents();
-  const { data: newsData, isRefetching: isNewsRefetching, refetch: refetchNews } = useNews(3);
+  const { data: newsData, isRefetching: isNewsRefetching, refetch: refetchNews } = useNews(5);
 
   const nextEvent = useMemo(() => data?.events?.[0], [data?.events]);
   const latestNews = newsData?.news ?? [];
@@ -47,6 +39,36 @@ export const HomeScreen: FC = () => {
     void Promise.all([refetchEvents(), refetchNews()]);
   }, [refetchEvents, refetchNews]);
 
+  const quickActions = useMemo(
+    () => [
+      {
+        id: 'tickets',
+        icon: '🎟️',
+        label: 'Tickets',
+        onPress: () => navigation.navigate('Tickets'),
+      },
+      {
+        id: 'events',
+        icon: '📅',
+        label: 'Events',
+        onPress: () => navigation.navigate('Events'),
+      },
+      {
+        id: 'news',
+        icon: '📰',
+        label: 'News',
+        onPress: () => navigation.navigate('NewsList'),
+      },
+      {
+        id: 'profile',
+        icon: '👤',
+        label: 'Profil',
+        onPress: () => navigation.navigate('Profile'),
+      },
+    ],
+    [navigation]
+  );
+
   const styles = useMemo(
     () =>
       StyleSheet.create({
@@ -55,81 +77,45 @@ export const HomeScreen: FC = () => {
           backgroundColor: colors.surface,
         },
         container: {
-          padding: spacing.lg,
-          gap: spacing.lg,
+          paddingBottom: spacing.xl,
         },
-        brandBadge: {
-          alignSelf: 'flex-end',
-          flexDirection: 'row',
-          alignItems: 'center',
-          backgroundColor: colors.card,
-          paddingVertical: spacing.xs,
-          paddingHorizontal: spacing.md,
-          borderRadius: 12,
-          gap: spacing.sm,
-          shadowColor: colors.shadow,
-          shadowOpacity: 0.12,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 3,
+        section: {
+          marginTop: spacing.xl,
         },
-        brandLogo: {
-          width: 48,
-          height: 48,
-        },
-        brandLabel: {
-          gap: spacing.xs,
-        },
-        brandTitle: {
-          fontSize: typography.subheading,
-          fontWeight: '700',
-          color: colors.text,
-        },
-        brandSubtitle: {
-          fontSize: typography.caption,
-          fontWeight: '600',
-          color: colors.muted,
-        },
-        greeting: {
-          fontSize: typography.heading,
-          fontWeight: '700',
-          color: colors.text,
-        },
-        empty: {
-          color: colors.muted,
-          fontSize: typography.body,
-        },
-        quickLinks: {
-          gap: spacing.md,
-        },
-        quickLink: {
-          backgroundColor: colors.card,
-          padding: spacing.lg,
-          borderRadius: 16,
-          shadowColor: colors.shadow,
-          shadowOpacity: 0.1,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: 2,
-        },
-        quickLinkTitle: {
-          fontSize: typography.subheading,
-          fontWeight: '600',
-          color: colors.text,
-        },
-        quickLinkSubtitle: {
-          marginTop: spacing.xs,
-          fontSize: typography.caption,
-          color: colors.muted,
-        },
-        newsHeaderRow: {
+        sectionHeader: {
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
+          paddingHorizontal: spacing.lg,
+          marginBottom: spacing.md,
         },
-        newsLink: {
-          color: colors.primary,
+        sectionTitle: {
+          fontSize: typography.subheading,
+          fontWeight: '700',
+          color: colors.text,
+          letterSpacing: -0.3,
+        },
+        emptyContainer: {
+          marginHorizontal: spacing.lg,
+          padding: spacing.xl,
+          backgroundColor: colors.card,
+          borderRadius: 16,
+          alignItems: 'center',
+        },
+        emptyIcon: {
+          fontSize: 48,
+          marginBottom: spacing.md,
+        },
+        emptyTitle: {
+          fontSize: typography.subheading,
           fontWeight: '600',
+          color: colors.text,
+          marginBottom: spacing.xs,
+        },
+        emptyText: {
+          fontSize: typography.caption,
+          color: colors.muted,
+          textAlign: 'center',
         },
       }),
     [colors]
@@ -139,97 +125,64 @@ export const HomeScreen: FC = () => {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[colors.primary]} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
         }
       >
-        <View style={styles.brandBadge}>
-          <Image source={MittelstandLogo} style={styles.brandLogo} resizeMode="contain" />
-          <View style={styles.brandLabel}>
-            <Text style={styles.brandTitle}>Der Mittelstand.</Text>
-            <Text style={styles.brandSubtitle}>BVMW</Text>
-          </View>
-        </View>
-        {FEATURE_ZUKUNFTSTAG_ENABLED && <ZukunftstagHero />}
-        <Text style={styles.greeting}>{strings.home.greeting}</Text>
-        <SectionHeader title={strings.home.nextEventSectionTitle} />
-        {nextEvent ? (
-          <EventCard
-            event={nextEvent}
-            onPress={() =>
-              navigation.navigate('Events', {
-                screen: 'EventDetail',
-                params: { eventId: nextEvent.id },
-              })
-            }
-          />
-        ) : (
-          <Text style={styles.empty}>{strings.home.noUpcomingEvents}</Text>
-        )}
+        {/* Hero Header with Greeting */}
+        <HeroHeader />
 
-        <View style={styles.newsHeaderRow}>
-          <SectionHeader title={strings.home.newsSectionTitle} />
-          <TouchableOpacity
-            onPress={() => navigation.navigate('NewsList')}
-            accessibilityRole="button"
-            accessibilityLabel={strings.home.newsSeeAll}
-          >
-            <Text style={styles.newsLink}>{strings.home.newsSeeAll}</Text>
-          </TouchableOpacity>
-        </View>
-        {latestNews.length === 0 ? (
-          <Text style={styles.empty}>{strings.news.empty}</Text>
-        ) : (
-          latestNews.map((item) => (
-            <NewsCard
-              key={item.id}
-              news={item}
-              onPress={() => navigation.navigate('NewsDetail', { newsId: item.id })}
-            />
-          ))
-        )}
-
+        {/* Zukunftstag Hero (if enabled) */}
         {FEATURE_ZUKUNFTSTAG_ENABLED && (
-          <>
-            <SectionHeader title={strings.zukunftstag.cardSectionTitle} />
-            <ZukunftstagCard />
-          </>
+          <View style={[styles.section, { marginTop: spacing.lg }]}>
+            <ZukunftstagHero />
+          </View>
         )}
 
-        <SectionHeader title={strings.home.quickLinksSectionTitle} />
-        <View style={styles.quickLinks}>
-          <TouchableOpacity
-            style={styles.quickLink}
-            onPress={() => navigation.navigate('Tickets')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.quickLinkTitle}>Meine Tickets</Text>
-            <Text style={styles.quickLinkSubtitle}>Status & QR-Codes</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickLink}
-            onPress={() => navigation.navigate('Events')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.quickLinkTitle}>Events</Text>
-            <Text style={styles.quickLinkSubtitle}>Alle Veranstaltungen</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickLink}
-            onPress={() => navigation.navigate('Profile')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.quickLinkTitle}>Profil</Text>
-            <Text style={styles.quickLinkSubtitle}>Meine Daten</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickLink}
-            onPress={() => navigation.navigate('NewsList')}
-            accessibilityRole="button"
-          >
-            <Text style={styles.quickLinkTitle}>News</Text>
-            <Text style={styles.quickLinkSubtitle}>{strings.home.newsSeeAll}</Text>
-          </TouchableOpacity>
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <QuickActions actions={quickActions} />
+        </View>
+
+        {/* Featured Event */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Nächstes Event</Text>
+          </View>
+          {nextEvent ? (
+            <FeaturedEventCard
+              event={nextEvent}
+              onPress={() =>
+                navigation.navigate('Events', {
+                  screen: 'EventDetail',
+                  params: { eventId: nextEvent.id },
+                })
+              }
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📅</Text>
+              <Text style={styles.emptyTitle}>Keine Events</Text>
+              <Text style={styles.emptyText}>
+                Aktuell sind keine kommenden Events verfügbar.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* News Carousel */}
+        <View style={styles.section}>
+          <NewsCarousel
+            news={latestNews}
+            onPressItem={(newsId) => navigation.navigate('NewsDetail', { newsId })}
+            onPressAll={() => navigation.navigate('NewsList')}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
