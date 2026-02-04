@@ -6,6 +6,7 @@ Incoming webhooks authenticate with a Bearer token by default. Legacy HMAC signa
 
 | Variable | Description |
 | --- | --- |
+| `DATABASE_URL` | Database connection string (e.g. `postgresql://user:pass@host:5432/db`). Prisma `file:` URLs for SQLite are also accepted. |
 | `WEBHOOK_AUTH_MODE` | `bearer` (default) or `hmac`. Controls which authentication strategy is active. |
 | `WEBHOOK_BEARER_TOKENS` | Comma-separated list of allowed tokens. Optional labels can be prefixed via `label:token` (e.g. `sf:token-a,doo:token-b`). |
 | `WEBHOOK_SHARED_SECRET` | Legacy HMAC secret. Only evaluated when `WEBHOOK_AUTH_MODE=hmac`. |
@@ -19,6 +20,55 @@ cp .env.example .env
 ```
 
 Set `WEBHOOK_AUTH_MODE=bearer` and populate `WEBHOOK_BEARER_TOKENS` with at least one token (optionally prefixed by a label such as `sf:`). The legacy `WEBHOOK_SHARED_SECRET` may remain unset unless HMAC mode is required.
+
+## Docker
+
+Build and run the backend in Docker using the repository root as the build context:
+
+```bash
+# Build the image
+docker build -f apps/backend/Dockerfile -t bvmw-backend .
+
+# Start the container (ensure DATABASE_URL and webhook secrets are set appropriately)
+docker run --env-file apps/backend/.env.example -p 3005:3005 bvmw-backend
+```
+
+Run Prisma migrations against your database before starting the container in production (e.g. `pnpm --filter backend... prisma:migrate`).
+
+### Docker Compose (backend + Postgres)
+
+To run the backend together with Postgres locally, create a Docker-specific environment file and start the stack from the monorepo root:
+
+```bash
+cp apps/backend/.env.docker.example apps/backend/.env.docker
+# Update WEBHOOK_BEARER_TOKENS / WEBHOOK_SHARED_SECRET as needed
+docker compose up --build
+```
+
+The stack will expose the backend on `http://localhost:3005` and Postgres on port `5432`. Apply Prisma migrations locally before launching the containers if you need the latest schema inside the database.
+
+
+### Start script (build + migrate + run)
+
+Use the helper script to build the image, run Prisma migrations (and check their status), and start the container. Provide your environment file (must contain `DATABASE_URL` and webhook secrets). The script resolves the repository root automatically, so it can be run from any working directory:
+=======
+
+### Start script (build + migrate + run)
+
+Use the helper script to build the image, run Prisma migrations (and check their status), and start the container. Provide your environment file (must contain `DATABASE_URL` and webhook secrets):
+
+
+```bash
+./apps/backend/scripts/start-backend-docker.sh apps/backend/.env
+```
+
+The script will:
+
+- build the `bvmw-backend` image from the monorepo root
+- apply Prisma migrations via `prisma migrate deploy`
+- verify migration status
+- restart a `bvmw-backend` container on port `3005`
+
 
 ## Bearer Auth Examples
 
@@ -51,7 +101,7 @@ PAYLOAD='{
   }
 }'
 
-curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
+curl -X POST http://localhost:3005/webhooks/salesforce/campaign \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Idempotency-Key: demo-campaign-001" \
@@ -72,7 +122,7 @@ PAYLOAD='{
   "updated_at": "2024-08-01T09:30:00+02:00"
 }'
 
-curl -X POST http://localhost:3000/webhooks/salesforce/attendee \
+curl -X POST http://localhost:3005/webhooks/salesforce/attendee \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Idempotency-Key: demo-attendee-001" \
@@ -98,7 +148,7 @@ PAYLOAD='{
 }'
 SIGNATURE=$(printf "%s.%s" "$TIMESTAMP" "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.* //')
 
-curl -X POST http://localhost:3000/webhooks/salesforce/campaign \
+curl -X POST http://localhost:3005/webhooks/salesforce/campaign \
   -H "Content-Type: application/json" \
   -H "X-Timestamp: $TIMESTAMP" \
   -H "X-Signature: $SIGNATURE" \

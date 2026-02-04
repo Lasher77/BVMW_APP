@@ -1,0 +1,13 @@
+# Common excludes
+.git
+node_modules
+pnpm-store
+.tmp
+*.log
+
+# Build artifacts
+apps/backend/dist
+coverage
+
+# Unused workspaces during backend image build
+apps/mobile

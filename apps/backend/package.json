@@ -4,8 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "pnpm dlx prisma@5.16.1 generate --schema prisma/schema.prisma",
+    "prestart": "pnpm dlx prisma@5.16.1 generate --schema prisma/schema.prisma",
     "dev": "tsx watch src/main.ts",
-    "start": "node dist/main.js",
+    "start": "pnpm dlx prisma@5.16.1 migrate deploy --schema prisma/schema.prisma && node dist/main.js",
+    "prebuild": "pnpm dlx prisma@5.16.1 generate --schema prisma/schema.prisma",
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint --ext .ts src",
     "test": "jest",
