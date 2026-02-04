@@ -1,13 +1,45 @@
 import type { FC } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text } from 'react-native';
+import { useMemo } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRegistrations } from '../hooks/useEvents';
 import { TicketCard } from '../components/TicketCard';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { currentMemberId } from '../config/member';
 
 export const TicketsScreen: FC = () => {
-  const { data, isLoading } = useRegistrations(currentMemberId);
+  const colors = useColors();
+  const { data, isLoading, refetch, isRefetching } = useRegistrations(currentMemberId);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        content: {
+          padding: spacing.lg,
+          gap: spacing.lg,
+        },
+        title: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          marginBottom: spacing.md,
+          color: colors.text,
+        },
+        loader: {
+          marginTop: spacing.lg,
+        },
+        empty: {
+          marginTop: spacing.lg,
+          color: colors.muted,
+          textAlign: 'center',
+        },
+      }),
+    [colors]
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -24,32 +56,10 @@ export const TicketsScreen: FC = () => {
             <Text style={styles.empty}>Keine Tickets vorhanden.</Text>
           )
         }
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.primary]} />
+        }
       />
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  title: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    marginBottom: spacing.md,
-    color: colors.text,
-  },
-  loader: {
-    marginTop: spacing.lg,
-  },
-  empty: {
-    marginTop: spacing.lg,
-    color: colors.muted,
-    textAlign: 'center',
-  },
-});

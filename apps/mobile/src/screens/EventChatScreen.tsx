@@ -17,12 +17,14 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useChatMessages, useSendMessage } from '../hooks/useChat';
 import type { EventsStackParamList } from '../navigation/types';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { currentMemberId } from '../config/member';
 
 export const EventChatScreen: FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<EventsStackParamList>>();
   const route = useRoute<RouteProp<EventsStackParamList, 'EventChat'>>();
+  const colors = useColors();
   const { eventId, partnerId, partnerName } = route.params;
   const [message, setMessage] = useState('');
   const { data, isLoading, refetch, isRefetching } = useChatMessages(
@@ -53,6 +55,101 @@ export const EventChatScreen: FC = () => {
   };
 
   const messages = useMemo(() => data?.messages ?? [], [data?.messages]);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        loader: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        list: {
+          padding: spacing.md,
+          gap: spacing.md,
+        },
+        bubbleWrapper: {
+          alignItems: 'flex-start',
+        },
+        bubbleWrapperOwn: {
+          alignItems: 'flex-end',
+        },
+        bubble: {
+          maxWidth: '80%',
+          padding: spacing.md,
+          borderRadius: 16,
+          gap: spacing.xs,
+        },
+        bubbleOwn: {
+          backgroundColor: colors.primary,
+        },
+        bubbleOther: {
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        messageText: {
+          fontSize: typography.body,
+          color: colors.text,
+        },
+        messageTextOwn: {
+          color: '#FFFFFF',
+        },
+        timestamp: {
+          fontSize: typography.caption,
+          color: colors.muted,
+          textAlign: 'right',
+        },
+        timestampOwn: {
+          color: '#FFFFFF',
+          opacity: 0.85,
+        },
+        composer: {
+          padding: spacing.md,
+          borderTopWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          gap: spacing.sm,
+        },
+        input: {
+          flex: 1,
+          minHeight: 44,
+          maxHeight: 120,
+          backgroundColor: colors.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 12,
+          padding: spacing.sm,
+          fontSize: typography.body,
+          color: colors.text,
+        },
+        sendButton: {
+          backgroundColor: colors.primary,
+          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.md,
+          borderRadius: 12,
+        },
+        sendButtonDisabled: {
+          opacity: 0.6,
+        },
+        sendLabel: {
+          color: '#FFFFFF',
+          fontWeight: '700',
+        },
+        empty: {
+          textAlign: 'center',
+          color: colors.muted,
+          marginTop: spacing.lg,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -99,6 +196,7 @@ export const EventChatScreen: FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Nachricht schreiben"
+            placeholderTextColor={colors.muted}
             value={message}
             onChangeText={setMessage}
             multiline
@@ -116,93 +214,3 @@ export const EventChatScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  bubbleWrapper: {
-    alignItems: 'flex-start',
-  },
-  bubbleWrapperOwn: {
-    alignItems: 'flex-end',
-  },
-  bubble: {
-    maxWidth: '80%',
-    padding: spacing.md,
-    borderRadius: 16,
-    gap: spacing.xs,
-  },
-  bubbleOwn: {
-    backgroundColor: colors.primary,
-  },
-  bubbleOther: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  messageText: {
-    fontSize: typography.body,
-    color: colors.text,
-  },
-  messageTextOwn: {
-    color: colors.background,
-  },
-  timestamp: {
-    fontSize: typography.caption,
-    color: colors.muted,
-    textAlign: 'right',
-  },
-  timestampOwn: {
-    color: colors.background,
-    opacity: 0.85,
-  },
-  composer: {
-    padding: spacing.md,
-    borderTopWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: spacing.sm,
-  },
-  input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    padding: spacing.sm,
-    fontSize: typography.body,
-  },
-  sendButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: 12,
-  },
-  sendButtonDisabled: {
-    opacity: 0.6,
-  },
-  sendLabel: {
-    color: colors.background,
-    fontWeight: '700',
-  },
-  empty: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginTop: spacing.lg,
-  },
-});

@@ -17,7 +17,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { useEvents } from '../hooks/useEvents';
 import { EventCard } from '../components/EventCard';
-import { colors, spacing, typography } from '../theme';
+import { EventCardSkeleton, ListSkeleton } from '../components/Skeleton';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import type { EventsStackParamList } from '../navigation/types';
 
 const dateFilters = [
@@ -30,6 +32,7 @@ type DateFilterKey = (typeof dateFilters)[number]['key'];
 
 export const EventsScreen: FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<EventsStackParamList>>();
+  const colors = useColors();
   const [region, setRegion] = useState('');
   const [query, setQuery] = useState('');
   const [onlineOnly, setOnlineOnly] = useState(false);
@@ -93,6 +96,79 @@ export const EventsScreen: FC = () => {
 
   const { data, isLoading, refetch, isRefetching } = useEvents(filterParams);
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        listContent: {
+          padding: spacing.lg,
+        },
+        filters: {
+          gap: spacing.sm,
+          marginBottom: spacing.lg,
+        },
+        title: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        input: {
+          backgroundColor: colors.card,
+          borderRadius: 12,
+          padding: spacing.md,
+          borderColor: colors.border,
+          borderWidth: 1,
+          fontSize: typography.body,
+          color: colors.text,
+        },
+        switchRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        },
+        switchLabel: {
+          fontSize: typography.body,
+          color: colors.text,
+        },
+        dateFilters: {
+          flexDirection: 'row',
+          gap: spacing.sm,
+        },
+        dateChip: {
+          paddingVertical: 6,
+          paddingHorizontal: spacing.md,
+          borderRadius: 999,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        dateChipActive: {
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+        },
+        dateChipLabel: {
+          color: colors.text,
+          fontSize: typography.caption,
+        },
+        dateChipLabelActive: {
+          color: '#FFFFFF',
+          fontWeight: '600',
+        },
+        loader: {
+          marginTop: spacing.lg,
+        },
+        empty: {
+          textAlign: 'center',
+          color: colors.muted,
+          marginTop: spacing.lg,
+        },
+      }),
+    [colors]
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <FlatList
@@ -111,6 +187,7 @@ export const EventsScreen: FC = () => {
             <TextInput
               style={styles.input}
               placeholder="Suche"
+              placeholderTextColor={colors.muted}
               value={query}
               onChangeText={setQuery}
               accessibilityLabel="Suche"
@@ -118,6 +195,7 @@ export const EventsScreen: FC = () => {
             <TextInput
               style={styles.input}
               placeholder="Region (z. B. Berlin)"
+              placeholderTextColor={colors.muted}
               value={region}
               onChangeText={setRegion}
               accessibilityLabel="Region"
@@ -151,7 +229,7 @@ export const EventsScreen: FC = () => {
         }
         ListEmptyComponent={
           isLoading ? (
-            <ActivityIndicator color={colors.primary} style={styles.loader} />
+            <ListSkeleton count={3} ItemComponent={EventCardSkeleton} />
           ) : (
             <Text style={styles.empty}>Keine Events gefunden.</Text>
           )
@@ -163,71 +241,3 @@ export const EventsScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  listContent: {
-    padding: spacing.lg,
-  },
-  filters: {
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  input: {
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    padding: spacing.md,
-    borderColor: colors.border,
-    borderWidth: 1,
-    fontSize: typography.body,
-  },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  switchLabel: {
-    fontSize: typography.body,
-    color: colors.text,
-  },
-  dateFilters: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  dateChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: 999,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  dateChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  dateChipLabel: {
-    color: colors.text,
-    fontSize: typography.caption,
-  },
-  dateChipLabelActive: {
-    color: colors.background,
-    fontWeight: '600',
-  },
-  loader: {
-    marginTop: spacing.lg,
-  },
-  empty: {
-    textAlign: 'center',
-    color: colors.muted,
-    marginTop: spacing.lg,
-  },
-});

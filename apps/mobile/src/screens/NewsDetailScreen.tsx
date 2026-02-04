@@ -1,9 +1,11 @@
 import type { FC } from 'react';
-import { StyleSheet, Text, ScrollView, Image, View, TouchableOpacity, Linking } from 'react-native';
+import { useMemo } from 'react';
+import { StyleSheet, Text, ScrollView, Image, View, TouchableOpacity, Linking, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { colors, spacing, typography } from '../theme';
+import { spacing, typography } from '../theme';
+import { useColors } from '../theme/ThemeContext';
 import { formatDate } from '../utils/date';
 import { useNewsArticle } from '../hooks/useNews';
 import type { HomeStackParamList } from '../navigation/types';
@@ -13,7 +15,8 @@ const placeholderImage = 'https://placehold.co/800x400/E30613/FFFFFF?text=BVMW';
 
 export const NewsDetailScreen: FC = () => {
   const route = useRoute<RouteProp<HomeStackParamList, 'NewsDetail'>>();
-  const { data, isLoading, error } = useNewsArticle(route.params.newsId);
+  const colors = useColors();
+  const { data, isLoading, error, refetch, isRefetching } = useNewsArticle(route.params.newsId);
   const article = data?.article;
 
   const handleDownload = () => {
@@ -22,9 +25,74 @@ export const NewsDetailScreen: FC = () => {
     }
   };
 
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: colors.surface,
+        },
+        container: {
+          padding: spacing.lg,
+          gap: spacing.md,
+        },
+        status: {
+          color: colors.muted,
+        },
+        image: {
+          width: '100%',
+          height: 220,
+          borderRadius: 12,
+        },
+        date: {
+          color: colors.muted,
+          fontSize: typography.caption,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+        },
+        title: {
+          fontSize: typography.heading,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        subline: {
+          fontSize: typography.body,
+          color: colors.muted,
+        },
+        author: {
+          fontSize: typography.caption,
+          color: colors.muted,
+        },
+        content: {
+          fontSize: typography.body,
+          color: colors.text,
+          lineHeight: 22,
+        },
+        downloadContainer: {
+          marginTop: spacing.sm,
+        },
+        downloadButton: {
+          backgroundColor: colors.primary,
+          padding: spacing.md,
+          borderRadius: 12,
+          alignItems: 'center',
+        },
+        downloadLabel: {
+          color: '#FFFFFF',
+          fontWeight: '700',
+        },
+      }),
+    [colors]
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} colors={[colors.primary]} />
+        }
+      >
         {isLoading && <Text style={styles.status}>Lade…</Text>}
         {error && <Text style={styles.status}>Konnte News nicht laden.</Text>}
         {article && (
@@ -57,59 +125,3 @@ export const NewsDetailScreen: FC = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.surface,
-  },
-  container: {
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  status: {
-    color: colors.muted,
-  },
-  image: {
-    width: '100%',
-    height: 220,
-    borderRadius: 12,
-  },
-  date: {
-    color: colors.muted,
-    fontSize: typography.caption,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  title: {
-    fontSize: typography.heading,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subline: {
-    fontSize: typography.body,
-    color: colors.muted,
-  },
-  author: {
-    fontSize: typography.caption,
-    color: colors.muted,
-  },
-  content: {
-    fontSize: typography.body,
-    color: colors.text,
-    lineHeight: 22,
-  },
-  downloadContainer: {
-    marginTop: spacing.sm,
-  },
-  downloadButton: {
-    backgroundColor: colors.primary,
-    padding: spacing.md,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  downloadLabel: {
-    color: colors.background,
-    fontWeight: '700',
-  },
-});

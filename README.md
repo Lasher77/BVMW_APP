@@ -1,151 +1,270 @@
 # BVMW Mitglieder-App Monorepo
 
-This repository contains the MVP implementation for the BVMW Mitglieder-App. It is structured as a pnpm workspace with a TypeScript/Express backend (BFF) and a React Native (Expo) mobile client.
+MVP-Implementierung der BVMW Mitglieder-App als pnpm Monorepo mit TypeScript/Express Backend und React Native (Expo) Mobile Client.
 
 ```
 /apps
-  /backend    # Express + Prisma API & webhook handlers
-  /mobile     # Expo mobile application
+  /backend    # Express + Prisma API & Webhook-Handler
+  /mobile     # Expo Mobile-Anwendung
 /packages
-  /config     # Shared linting & formatting config
-  /tsconfig   # Shared TypeScript compiler settings
+  /config     # Shared Linting & Formatting
+  /tsconfig   # Shared TypeScript-Konfiguration
 ```
 
-## Prerequisites
+## macOS Installation
 
-- Node.js 20+
-- pnpm 8+
-- PostgreSQL instance for local development
+### Voraussetzungen
 
-### macOS local testing setup
+- macOS Sonoma oder neuer (Apple Silicon oder Intel)
+- Terminal-Zugang
+- ca. 2 GB freier Speicherplatz
 
-The following snippet outlines a typical macOS Sonoma (Apple Silicon) setup for evaluating the project locally:
+### Schritt 1: Homebrew installieren
 
-1. Install [Homebrew](https://brew.sh/) if it is not yet available: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`.
-2. Install required tooling:
-   ```bash
-   brew install node@20 pnpm postgresql@15
-   ```
-3. Make the binaries available on your shell (add to `.zshrc` or `.bashrc` as needed):
-   ```bash
-   echo 'export PATH="/opt/homebrew/opt/node@20/bin:/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.zshrc
-   source ~/.zshrc
-   ```
-4. Start PostgreSQL and create a development database:
-   ```bash
-   brew services start postgresql@15
-   createdb bvmw_app_dev
-   ```
-5. Clone the repository, install dependencies, and run migrations:
-   ```bash
-   git clone https://github.com/<your-org>/BVMW_APP.git
-   cd BVMW_APP
-   pnpm install
-   cd apps/backend
-   cp .env.example .env
-   # update DATABASE_URL to: postgres://$(whoami)@localhost:5432/bvmw_app_dev
-   pnpm prisma migrate dev
-   pnpm prisma generate
-   ```
-6. In a second terminal, prepare the Expo client:
-   ```bash
-   cd apps/mobile
-   cp .env.example .env
-   pnpm install
-   ```
-7. Start the services:
-   ```bash
-   # backend
-   cd apps/backend
-   pnpm dev
+Falls noch nicht vorhanden:
 
-   # mobile (separate terminal)
-   cd apps/mobile
-   pnpm start
-   ```
-
-You can now access the backend at `http://localhost:3000` and connect the Expo app via the QR code shown in the terminal.
-
-### News admin frontend
-
-The backend serves a lightweight HTML admin page for managing news articles. After starting the backend in development mode, open `http://localhost:3000/admin/news` in your browser to add or review articles (headline, subline, body text, author, image URL, optional download URL, and publication date). The latest entries automatically power the news preview on the mobile Home screen.
-
-## Backend (`apps/backend`)
-
-### Environment
-
-```
-cp apps/backend/.env.example apps/backend/.env
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Update `DATABASE_URL` and `WEBHOOK_SHARED_SECRET` as needed.
+Nach der Installation den angezeigten Befehlen folgen, um Homebrew zum PATH hinzuzufügen.
 
-### Database & Prisma
+### Schritt 2: Abhängigkeiten installieren
 
+```bash
+brew install node@20 pnpm postgresql@15
 ```
+
+### Schritt 3: PATH konfigurieren
+
+Füge folgende Zeile zu deiner Shell-Konfiguration hinzu:
+
+**Für Zsh (Standard auf macOS):**
+```bash
+echo 'export PATH="/opt/homebrew/opt/node@20/bin:/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+**Für Bash:**
+```bash
+echo 'export PATH="/opt/homebrew/opt/node@20/bin:/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.bash_profile
+source ~/.bash_profile
+```
+
+**Für Intel Macs:** Ersetze `/opt/homebrew` durch `/usr/local`.
+
+### Schritt 4: PostgreSQL starten
+
+```bash
+brew services start postgresql@15
+```
+
+Prüfe, ob PostgreSQL läuft:
+```bash
+brew services list
+```
+
+### Schritt 5: Datenbank erstellen
+
+```bash
+createdb bvmw_app_dev
+```
+
+### Schritt 6: Repository klonen
+
+```bash
+git clone https://github.com/Lasher77/BVMW_APP.git
+cd BVMW_APP
+```
+
+### Schritt 7: Dependencies installieren
+
+```bash
+pnpm install
+```
+
+### Schritt 8: Backend konfigurieren
+
+```bash
 cd apps/backend
+cp .env.example .env
+```
+
+Bearbeite `.env` und setze die `DATABASE_URL`:
+```bash
+DATABASE_URL="postgresql://$(whoami)@localhost:5432/bvmw_app_dev"
+```
+
+Oder manuell in einem Editor:
+```
+DATABASE_URL="postgresql://deinbenutzername@localhost:5432/bvmw_app_dev"
+```
+
+### Schritt 9: Datenbank migrieren
+
+```bash
 pnpm prisma migrate dev
 pnpm prisma generate
-pnpm seed        # optional seed data
+pnpm seed  # Optional: Demo-Daten laden
 ```
 
-If you pulled the repository after the news feature was added, re-run `pnpm prisma migrate dev` to apply the new `News` table migration before starting the server.
+### Schritt 10: Mobile App konfigurieren
 
-### Development
-
+In einem neuen Terminal:
+```bash
+cd apps/mobile
+cp .env.example .env
 ```
+
+Die Standardwerte sollten für lokale Entwicklung funktionieren.
+
+### Schritt 11: Services starten
+
+**Terminal 1 - Backend:**
+```bash
+cd apps/backend
 pnpm dev
 ```
 
-The server exposes REST endpoints under `/api/*`, Salesforce webhooks under `/webhooks/*`, and `/healthz` for health checks. An OpenAPI description is available at `apps/backend/openapi.yaml`.
+Das Backend läuft unter `http://localhost:3000`.
 
-### Testing
-
-Run the full workspace test suite:
-
-```
-pnpm test
-```
-
-Or target individual apps while iterating:
-
-```
-pnpm --filter backend test
-pnpm --filter mobile test
-```
-
-## Mobile (`apps/mobile`)
-
-### Environment
-
-```
-cp apps/mobile/.env.example apps/mobile/.env
-```
-
-Set `EXPO_PUBLIC_API_URL` to the backend URL and adjust the demo `EXPO_PUBLIC_MEMBER_ID` if required.
-
-### Development
-
-```
+**Terminal 2 - Mobile:**
+```bash
 cd apps/mobile
 pnpm start
 ```
 
-Use the Expo CLI output to open the app on iOS, Android, or the web. The default tab navigation includes Home, Events, Tickets, and Profil screens. Event registration opens the configured doo registration URL in an in-app browser.
+Expo zeigt einen QR-Code. Scanne ihn mit:
+- **iOS:** Kamera-App → Link folgen
+- **Android:** Expo Go App → QR scannen
 
-## Tooling
+## Verfügbare Endpunkte
 
-- Linting: `pnpm -r lint`
-- Tests: `pnpm -r test`
-- Formatting: shared Prettier configuration under `packages/config`
+Nach dem Start:
+
+| URL | Beschreibung |
+|-----|--------------|
+| `http://localhost:3000/healthz` | Health Check |
+| `http://localhost:3000/api/events` | Events-API |
+| `http://localhost:3000/api/news` | News-API |
+| `http://localhost:3000/admin/news` | News-Verwaltung |
+
+## Nützliche Befehle
+
+### Entwicklung
+
+```bash
+# Backend mit Hot-Reload
+cd apps/backend && pnpm dev
+
+# Mobile mit Expo
+cd apps/mobile && pnpm start
+
+# Alle Apps gleichzeitig (aus Root)
+pnpm -r dev
+```
+
+### Datenbank
+
+```bash
+# Prisma Studio (GUI)
+cd apps/backend && pnpm prisma studio
+
+# Neue Migration erstellen
+pnpm prisma migrate dev --name beschreibung
+
+# Datenbank zurücksetzen
+pnpm prisma migrate reset
+```
+
+### Tests & Linting
+
+```bash
+# Alle Tests
+pnpm -r test
+
+# Nur Backend
+pnpm --filter backend test
+
+# Nur Mobile
+pnpm --filter mobile test
+
+# Linting
+pnpm -r lint
+```
+
+### Build
+
+```bash
+# Backend bauen
+cd apps/backend && pnpm build
+
+# Alle Apps bauen
+pnpm -r build
+```
+
+## Troubleshooting
+
+### PostgreSQL startet nicht
+
+```bash
+# Logs prüfen
+brew services info postgresql@15
+
+# Manuell starten
+/opt/homebrew/opt/postgresql@15/bin/postgres -D /opt/homebrew/var/postgresql@15
+```
+
+### Port 3000 bereits belegt
+
+```bash
+# Prozess finden
+lsof -i :3000
+
+# Prozess beenden
+kill -9 <PID>
+```
+
+### Prisma Client veraltet
+
+```bash
+cd apps/backend
+pnpm prisma generate
+```
+
+### Node-Version falsch
+
+```bash
+node --version  # Sollte v20.x.x zeigen
+
+# Falls nicht, PATH prüfen oder nvm nutzen
+brew unlink node && brew link node@20
+```
+
+### Mobile App verbindet nicht zum Backend
+
+1. Prüfe, ob Backend läuft (`http://localhost:3000/healthz`)
+2. Prüfe `EXPO_PUBLIC_API_URL` in `apps/mobile/.env`
+3. Bei physischem Gerät: Lokale IP statt `localhost` verwenden
+
+```bash
+# Lokale IP finden
+ipconfig getifaddr en0
+```
+
+Dann in `.env`:
+```
+EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
+```
+
+## Projekt-Dokumentation
+
+Für detaillierte Informationen zur Architektur und Entwicklung siehe [CLAUDE.md](./CLAUDE.md).
 
 ## Webhooks
 
-Both Salesforce webhooks require `X-Signature`, `X-Timestamp`, and `Idempotency-Key` headers. Sample payloads can be found in the OpenAPI spec. The seed script creates one demo event (`701TEST0001`) and member (`003TEST0001`) to exercise the APIs.
+Salesforce-Webhooks benötigen `X-Signature`, `X-Timestamp` und `Idempotency-Key` Header. Payload-Beispiele findest du in `apps/backend/openapi.yaml`.
 
-## Notes
+## Lizenz
 
-- Webhook payloads are stored in the `WebhookEvent` table for traceability and idempotency handling.
-- Event descriptions are sanitized server-side using DOMPurify.
-- React Query powers the mobile app's offline-first caching behaviour.
-- Tests cover webhook signature validation and registration status mapping logic.
+Proprietär - BVMW
