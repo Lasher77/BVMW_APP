@@ -34,8 +34,14 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     return null;
   }
 
+  const projectId = process.env.EXPO_PUBLIC_PROJECT_ID;
+  if (!projectId) {
+    console.log('EXPO_PUBLIC_PROJECT_ID not set');
+    return null;
+  }
+
   const token = await Notifications.getExpoPushTokenAsync({
-    projectId: process.env.EXPO_PUBLIC_PROJECT_ID,
+    projectId,
   });
 
   if (Platform.OS === 'android') {
@@ -79,8 +85,8 @@ export function usePushNotifications() {
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   const handleNotificationResponse = useCallback((response: Notifications.NotificationResponse) => {
     const data = response.notification.request.content.data;
@@ -116,10 +122,10 @@ export function usePushNotifications() {
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, [handleNotificationResponse]);

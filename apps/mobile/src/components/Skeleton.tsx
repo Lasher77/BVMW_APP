@@ -1,11 +1,11 @@
 import type { FC } from 'react';
 import { useEffect, useRef, useMemo } from 'react';
-import { Animated, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Animated, StyleSheet, View, type ViewStyle, type DimensionValue } from 'react-native';
 import { radii, spacing, typography } from '../theme';
 import { useColors } from '../theme/ThemeContext';
 
 type SkeletonProps = {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;
@@ -26,12 +26,12 @@ export const Skeleton: FC<SkeletonProps> = ({
         Animated.timing(animatedValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: true,
+          useNativeDriver: false,
         }),
       ])
     );
@@ -44,18 +44,19 @@ export const Skeleton: FC<SkeletonProps> = ({
     outputRange: [0.3, 0.7],
   });
 
+  const skeletonStyle = useMemo(
+    () => ({
+      width,
+      height,
+      borderRadius,
+      backgroundColor: colors.border,
+    }),
+    [width, height, borderRadius, colors.border]
+  );
+
   return (
     <Animated.View
-      style={[
-        {
-          width,
-          height,
-          borderRadius,
-          backgroundColor: colors.border,
-          opacity,
-        },
-        style,
-      ]}
+      style={[skeletonStyle, { opacity }, style]}
     />
   );
 };
@@ -185,7 +186,7 @@ export const TicketCardSkeleton: FC = () => {
   );
 };
 
-export const TextLineSkeleton: FC<{ width?: number | string }> = ({ width = '100%' }) => (
+export const TextLineSkeleton: FC<{ width?: DimensionValue }> = ({ width = '100%' }) => (
   <Skeleton width={width} height={typography.body} style={{ marginBottom: spacing.xs }} />
 );
 

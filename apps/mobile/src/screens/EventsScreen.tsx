@@ -1,7 +1,6 @@
 import type { FC } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
